@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model barrios {
+  cod_barr   Int          @id @default(autoincrement())
+  nom_barr   String       @db.VarChar(20)
+  domicilios domicilios[]
+}
+
+model departamentos {
+  id_depto                Int                       @id @default(autoincrement())
+  piso_depto              String                    @db.VarChar(10)
+  letra_depto             String                    @db.VarChar(5)
+  porc_depto              Float                     @db.Float
+  id_edif                 Int
+  edificios               edificios                 @relation(fields: [id_edif], references: [id_edif], onDelete: NoAction, onUpdate: NoAction, map: "fk_idedifdpto")
+  departamentos_titulares departamentos_titulares[]
+  expensas                expensas[]
+
+  @@index([id_edif], map: "id_edif_idx")
+}
+
+model departamentos_titulares {
+  id_depto      Int
+  id_tit        Int
+  departamentos departamentos @relation(fields: [id_depto], references: [id_depto], onDelete: NoAction, onUpdate: NoAction, map: "departamentos_titulares_ibfk_1")
+  titulares     titulares     @relation(fields: [id_tit], references: [id_tit], onDelete: NoAction, onUpdate: NoAction, map: "departamentos_titulares_ibfk_2")
+
+  @@id([id_depto, id_tit])
+  @@index([id_tit], map: "departamentos_titulares_ibfk_2")
+}
+
+model domicilios {
+  cod_dom   Int         @id @default(autoincrement())
+  cod_barr  Int
+  calle_dom String      @db.VarChar(20)
+  nro_dom   String      @db.VarChar(10)
+  piso_dom  String?     @db.VarChar(5)
+  depto_dom String?     @db.VarChar(5)
+  barrios   barrios     @relation(fields: [cod_barr], references: [cod_barr], onDelete: NoAction, onUpdate: NoAction, map: "domicilios_ibfk_1")
+  edificios edificios[]
+
+  @@index([cod_barr], map: "cod_barr")
+}
+
+model edificios {
+  id_edif       Int             @id @default(autoincrement())
+  cod_dom       Int
+  nom_edif      String          @db.VarChar(20)
+  departamentos departamentos[]
+  domicilios    domicilios      @relation(fields: [cod_dom], references: [cod_dom], onDelete: NoAction, onUpdate: NoAction, map: "edificios_ibfk_1")
+  gastoscomunes gastoscomunes?
+
+  @@index([cod_dom], map: "cod_dom")
+}
+
+model expensas {
+  id_exp        Int           @id @default(autoincrement())
+  vto1_exp      Float?        @default(0)
+  vto2_exp      Float?        @default(0)
+  nota_exp      String?       @db.VarChar(255)
+  id_depto      Int
+  departamentos departamentos @relation(fields: [id_depto], references: [id_depto], onDelete: NoAction, onUpdate: NoAction, map: "id_deptofk")
+
+  @@index([id_depto], map: "id_deptofk_idx")
+}
+
+model gastoscomunes {
+  id_gc      Int       @id @default(autoincrement())
+  monto_gc   Float     @default(0)
+  vto1_gc    DateTime? @db.Date
+  vto2_gc    DateTime? @db.Date
+  interes_gc Float?
+  id_edif    Int       @unique(map: "id_edif_UNIQUE")
+  edificios  edificios @relation(fields: [id_edif], references: [id_edif], onDelete: NoAction, onUpdate: NoAction, map: "id_ediffk")
+
+  @@index([id_edif], map: "id_ediffk_idx")
+}
+
+model titulares {
+  id_tit                  Int                       @id @default(autoincrement())
+  nom_tit                 String                    @db.VarChar(50)
+  ape_tit                 String?                   @db.VarChar(50)
+  email_tit               String?                   @unique(map: "email_tit_UNIQUE") @db.VarChar(50)
+  more_tit                Int?                      @default(0) @db.TinyInt
+  rol_tit                 titulares_rol_tit
+  departamentos_titulares departamentos_titulares[]
+}
+
+model usuarios {
+  id_user       Int    @id
+  email_user    String @unique(map: "email_UNIQUE") @db.VarChar(45)
+  nombre_user   String @db.VarChar(20)
+  password_user String @db.VarChar(255)
+}
+
+enum titulares_rol_tit {
+  INQUILINO
+  PROPIETARIO
+  TITULAR
+}
