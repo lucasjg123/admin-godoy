@@ -43,3 +43,18 @@ export async function updateExpensas(
 
   return parsed.data;
 }
+
+export async function sendExpensas(
+  id_edif: number,
+  file: File
+) {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const { data } = await api.post(
+    `/edificios/${id_edif}/expensas/send`,
+    formData
+  );
+
+  return data;
+}

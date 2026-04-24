@@ -1,3 +1,4 @@
+'use client';
 import { CardHeader } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import {

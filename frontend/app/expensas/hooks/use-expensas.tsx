@@ -1,4 +1,4 @@
-import { getExpensasByEdificio, updateExpensas } from '@/lib/api/expensa.api';
+import { getExpensasByEdificio, sendExpensas, updateExpensas } from '@/lib/api/expensa.api';
 import { ExpensaList, ExpensaUpdate } from '@/lib/schemas/expensa.schema';
 import { useExpensasStore } from '@/stores/expensa-store';
 import { useEffect, useState } from 'react';
@@ -57,4 +57,26 @@ export function useUpdateExpensa() {
   };
 
   return { update, loading, error };
+}
+
+export function useSendExpensas() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const send = async (id_edif: number, file: File) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await sendExpensas(id_edif, file);
+      return res;
+    } catch (e) {
+      setError('Error al enviar expensas');
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { send, loading, error };
 }

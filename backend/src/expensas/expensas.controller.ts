@@ -43,7 +43,7 @@ export class ExpensasController {
     // @UploadedFile() file: Express.Multer.File,
   ) {
     await this.expensasService.sendExpensaByEmail(id_edif);
-
+    console.log('estamos en /send')
     return {
       success: true,
       message: 'Expensas enviadas correctamente',

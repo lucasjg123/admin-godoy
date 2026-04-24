@@ -7,9 +7,17 @@ services:
       - "3000:3000"
     env_file:
       - ./backend/.env
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    command: npm run start:dev
 
   frontend:
     build: ./frontend
     container_name: next_frontend
     ports:
       - "3001:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- -H 0.0.0.0

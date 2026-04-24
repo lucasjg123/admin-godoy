@@ -1,3 +1,4 @@
+import { useSendExpensas } from '@/app/expensas/hooks/use-expensas';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -10,17 +11,20 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useEdificioStore } from '@/stores/edificio-store';
 import { useState } from 'react';
 
 type Props = { onClose: () => void };
 
 const ModalSend = ({ onClose }: Props) => {
+  const selectedEdificio = useEdificioStore((state) => state.selectedEdificio);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const { send, loading, error } = useSendExpensas();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
+    console.log('enviando expensas')
     if (!file) {
       alert('Debe seleccionar un PDF');
       return;
@@ -30,19 +34,15 @@ const ModalSend = ({ onClose }: Props) => {
   };
 
   const handleSend = async () => {
-    if (!file) return;
+    console.log('enviando expensas')
+   if (!file) return;
+    console.log('enviando expensas')
+    const res = await send(selectedEdificio!, file);
 
-    const formData = new FormData();
-    formData.append('file', file);
-
-    //id del edificio
-    await fetch('/api/expensas', {
-      method: 'POST',
-      body: formData,
-    });
-
-    setConfirmOpen(false);
-    onClose();
+    if (res) {
+      setConfirmOpen(false);
+      onClose();
+    }
   };
 
   return (
@@ -65,17 +65,19 @@ const ModalSend = ({ onClose }: Props) => {
                 }
               }}
             />
-          </form>
-          <DialogFooter className='mt-6'>
-            <DialogClose asChild>
-              <Button type='button' variant='outline'>
-                Cancelar
-              </Button>
-            </DialogClose>
+            
+            <DialogFooter className='mt-6'>
+              <DialogClose asChild>
+                <Button type='button' variant='outline'>
+                  Cancelar
+                </Button>
+              </DialogClose>
 
-            <Button type='submit'>Enviar</Button>
-          </DialogFooter>
-        </DialogContent>
+              <Button type='submit'>Enviar</Button>
+            </DialogFooter>
+
+          </form>
+          </DialogContent>
       </Dialog>
 
       <ConfirmDialog

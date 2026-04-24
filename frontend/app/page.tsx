@@ -25,9 +25,7 @@ export default function Home() {
 
     setSelectedDepto(depto);
     setOpenRecibo(true);
-  };
-
-  console.log("API URL:", process.env.NEXT_PUBLIC_API_URL);
+  };  
 
   return (
     <Card className='max-w-7xl mx-auto mt-5'>
