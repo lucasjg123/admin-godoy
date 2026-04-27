@@ -53,7 +53,12 @@ export async function sendExpensas(
 
   const { data } = await api.post(
     `/edificios/${id_edif}/expensas/send`,
-    formData
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
   );
 
   return data;

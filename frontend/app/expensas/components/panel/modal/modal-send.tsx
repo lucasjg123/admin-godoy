@@ -24,7 +24,6 @@ const ModalSend = ({ onClose }: Props) => {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('enviando expensas')
     if (!file) {
       alert('Debe seleccionar un PDF');
       return;
@@ -34,9 +33,7 @@ const ModalSend = ({ onClose }: Props) => {
   };
 
   const handleSend = async () => {
-    console.log('enviando expensas')
-   if (!file) return;
-    console.log('enviando expensas')
+    if (!file) return;
     const res = await send(selectedEdificio!, file);
 
     if (res) {

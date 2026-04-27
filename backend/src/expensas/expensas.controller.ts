@@ -40,10 +40,11 @@ export class ExpensasController {
   @UseInterceptors(FileInterceptor('file'))
   async sendMail(
     @Param('id_edif', ParseIntPipe) id_edif: number,
-    // @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File,
   ) {
-    await this.expensasService.sendExpensaByEmail(id_edif);
-    console.log('estamos en /send')
+    console.log('estamos en /send');
+    console.log('Archivo recibido:', file?.originalname);
+    await this.expensasService.sendExpensaByEmail(id_edif, file);
     return {
       success: true,
       message: 'Expensas enviadas correctamente',

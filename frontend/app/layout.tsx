@@ -4,6 +4,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/theme-provider';
 import { Toaster } from '@/components/ui/sonner';
 import ConfirmLeave from '@/hooks/use-confirmleave';
+import { NavBar } from '@/components/navbar';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -37,6 +38,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ConfirmLeave />
+          <NavBar /> 
           {children}
           <Toaster richColors position='top-center' />
         </ThemeProvider>
