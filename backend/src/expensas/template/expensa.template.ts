@@ -46,9 +46,12 @@ export const buildExpensaTemplate = (
       text: `Ubicación: ${exp.departamentos.piso_depto} ${exp.departamentos.letra_depto}`,
     },
     {
+      // 🛡️ Acceso seguro al primer titular
       text: `Titular: ${
-        exp.departamentos.departamentos_titulares[0].titulares.nom_tit
-      } ${exp.departamentos.departamentos_titulares[0].titulares.ape_tit}`,
+        exp.departamentos.departamentos_titulares?.[0]?.titulares 
+          ? `${exp.departamentos.departamentos_titulares[0].titulares.nom_tit} ${exp.departamentos.departamentos_titulares[0].titulares.ape_tit}`
+          : ' ' // Texto por defecto si no hay titular
+      }`,
       margin: [0, 0, 0, 15],
     },
 
