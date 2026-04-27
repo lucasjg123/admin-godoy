@@ -73,7 +73,7 @@ export const buildExpensaTemplate = (
     moneyRow(`% Participación ${exp.departamentos.porc_depto}`, exp.vto1_exp),
 
     {
-      text: `${exp.nota_exp}`,
+      text: `${exp.nota_exp ?? ' '}`,
     },
     {
       text: '',
