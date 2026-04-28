@@ -24,6 +24,8 @@ type Props = {
   onRemove: (id: number) => void;
 };
 
+
+
 export const Row = ({
   titular,
   isEditing,
@@ -35,6 +37,7 @@ export const Row = ({
   onCancel,
   onRemove,
 }: Props) => {
+  // console.log('titular', titular);
   return (
     <TableRow className='align-top'>
       <TableCell className='align-top'>
@@ -64,7 +67,7 @@ export const Row = ({
           value={isEditing ? formData.email_tit ?? '' : titular.email_tit ?? ''}
           disabled={!isEditing}
           onChange={(e) =>
-            setFormData({ ...formData, email_tit: e.target.value })
+            setFormData({ ...formData, email_tit: e.target.value.trim() === '' ? null: e.target.value.trim()  })
           }
           error={isEditing ? formErrors.email_tit?.[0] : undefined}
         />
@@ -78,7 +81,7 @@ export const Row = ({
             setFormData((prev) => ({
               ...prev,
               rol_tit: value as CreateTitular['rol_tit'],
-              email_tit: value === 'TITULAR' ? null : prev.email_tit,
+              email_tit: prev.email_tit,
             }))
           }
         >

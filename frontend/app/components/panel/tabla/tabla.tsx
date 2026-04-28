@@ -37,7 +37,7 @@ const Tabla = ({ id_depto }: Props) => {
   const initialState: CreateTitular = {
     nom_tit: '',
     ape_tit: '',
-    email_tit: '',
+    email_tit: null,
     rol_tit: 'INQUILINO',
     more_tit: 0,
   };
@@ -56,7 +56,7 @@ const Tabla = ({ id_depto }: Props) => {
     setFormData({
       nom_tit: '',
       ape_tit: '',
-      email_tit: '',
+      email_tit: null,
       rol_tit: 'INQUILINO',
       more_tit: 0,
     });
@@ -70,14 +70,22 @@ const Tabla = ({ id_depto }: Props) => {
     setFormData({
       nom_tit: titular.nom_tit,
       ape_tit: titular.ape_tit ?? '',
-      email_tit: titular.email_tit ?? '',
+      email_tit: titular.email_tit ?? null,
       rol_tit: titular.rol_tit,
       more_tit: 0,
     });
   };
 
   const handleValidate = () => {
-    const result = createTitularSchema.safeParse(formData);
+    // const result = createTitularSchema.safeParse(formData);
+    // 1. Preparamos los datos: si el email es un string vacío o solo espacios, lo pasamos a null
+  const dataToValidate = {
+    ...formData,
+    email_tit: formData.email_tit?.trim() === '' ? null : formData.email_tit,
+  };
+
+  // 2. Validamos los datos ya limpios
+  const result = createTitularSchema.safeParse(dataToValidate);
 
     if (!result.success) {
       setFormErrors(result.error.flatten().fieldErrors);

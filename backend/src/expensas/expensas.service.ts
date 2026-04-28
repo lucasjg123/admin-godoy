@@ -84,67 +84,81 @@ export class ExpensasService {
 
 
   async sendExpensaByEmail(id_edif: number, file?: Express.Multer.File) {
-  const expensas = await this.findByEdificio(id_edif);
-  console.log(`Iniciando envío masivo: ${expensas.length} expensas.`);
+    const expensas = await this.findByEdificio(id_edif);
+    console.log(`🚀 Iniciando envío secuencial: ${expensas.length} expensas.`);
 
-  const mails = expensas.map(async (expensa) => {
-    try {
-      // 1. Obtener titulares (aquí el await solo bloquea ESTA promesa, no el loop entero)
-      const titulares = await this.titularesService.findByDpto(expensa.id_depto);
-      const emails = titulares
-        ?.map((t) => t?.titulares?.email_tit)
-        .filter((email): email is string => !!email) || [];
+    // 1. Tipamos el array para que TypeScript no chille con el "never"
+    const results: { status: string; id: number; error?: string }[] = [];
 
-      if (emails.length === 0) return `Saltado: ${expensa.id_exp} (sin emails)`;
+    for (const expensa of expensas) {
+      let step = 'inicializando';
+      const logId = `[Expensa: ${expensa.departamentos.edificios.nom_edif} ${expensa.departamentos.piso_depto} ${expensa.departamentos.letra_depto}]`;
 
-      // 2. Generación de PDF propio de la expensa
-      const expensaDoc = await this.createExpensa(expensa);
-      const pdfBuffer = await this.printer.bufferPdf(expensaDoc);
+      try {
+        step = 'obteniendo titulares';
+        const titulares = await this.titularesService.findByDpto(expensa.id_depto);
+        const emails = titulares?.map(t => t?.titulares?.email_tit).filter(e => !!e) || [];
 
-      // 3. Preparar adjuntos
-      const name = `${expensa.departamentos.edificios.nom_edif} ${expensa.departamentos.piso_depto} ${expensa.departamentos.letra_depto}`.toUpperCase();
-      
-      const attachments: any[] = [
-        {
+        if (emails.length === 0) {
+          console.warn(`${logId} ⚠️ Sin destinatarios, saltando...`);
+          continue;
+        }
+
+        step = 'generando PDF';
+        const expensaDoc = await this.createExpensa(expensa);
+        const pdfBuffer = await this.printer.bufferPdf(expensaDoc);
+
+        step = 'preparando adjuntos';
+        const edif = expensa.departamentos?.edificios?.nom_edif || 'EDIFICIO';
+        
+        // 2. CORRECCIÓN: Usamos letra_depto (el nombre correcto en tu DB)
+        const dpto = `${expensa.departamentos?.piso_depto || ''}${expensa.departamentos?.letra_depto || ''}`;
+        const name = `${edif} ${dpto}`.toUpperCase().trim();
+
+        const attachments: any[] = [{
           filename: `expensa ${name}.pdf`,
           content: pdfBuffer,
           contentType: 'application/pdf',
+        }];
+
+        if (file?.buffer) {
+          attachments.push({
+            filename: file.originalname,
+            content: file.buffer,
+            contentType: file.mimetype,
+          });
         }
-      ];
 
-      // 📎 Si viene un archivo extra (file), lo adjuntamos
-      if (file && file.buffer) {
-        attachments.push({
-          filename: file.originalname,
-          content: file.buffer,
-          contentType: file.mimetype,
+        step = 'enviando correo (SMTP)';
+        await this.mailService.sendMail({
+          to: 'lucas9godoy@gmail.com', // Mantenemos fijo por ahora
+          subject: `Expensa ${name} y Detalle de gastos`,
+          text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
+          attachments,
         });
-      }
-      else{
-        console.log('no hay archivo adjunto detalle de gastos com');
-      }
 
-      // 4. Enviar mail
-      return await this.mailService.sendMail({
-        to: 'lucas9godoy@gmail.com', // 👈 Deberías usar el array de emails encontrados, no uno fijo
-        subject: `Expensa ${name} y Detalle de gastos comunes`,
-        text: 'Adjuntamos su expensa en PDF y detalle de gastos.',
-        attachments,
-      });
+        console.log(`✅ ${logId} Enviado correctamente`);
+        results.push({ status: 'fulfilled', id: expensa.id_exp });
 
-    } catch (error) {
-      console.error(`❌ Error en expensa ID ${expensa.id_exp}:`, error.message);
-      throw error; // Re-lanzamos para que Promise.allSettled lo capture
+        // 3. PAUSA DE SEGURIDAD: Aumentamos a 3 segundos para evitar el error 421 de Google
+        await new Promise(resolve => setTimeout(resolve, 3000));
+
+      } catch (error) {
+        console.error(`❌ ${logId} Falló en el paso [${step}]:`, error.message);
+        results.push({ status: 'rejected', id: expensa.id_exp, error: error.message });
+        
+        // Pausa extra si falló por SMTP para dejar que el servidor respire
+        if (step === 'enviando correo (SMTP)') {
+          await new Promise(resolve => setTimeout(resolve, 5000));
+        }
+      }
     }
-  });
 
-  const results = await Promise.allSettled(mails);
-  
-  // Resumen de éxito/error
-  const exitosos = results.filter(r => r.status === 'fulfilled').length;
-  const fallidos = results.filter(r => r.status === 'rejected').length;
-  console.log(`Finalizado: ${exitosos} enviados, ${fallidos} fallidos.`);
-}
+    const exitosos = results.filter(r => r.status === 'fulfilled').length;
+    console.log('--------------------------------------------------');
+    console.log(`📊 FINALIZADO | Éxitos: ${exitosos} | Fallidos: ${expensas.length - exitosos}`);
+    console.log('--------------------------------------------------');
+  }
 
   async update(id_exp: number, updateExpensaDto: UpdateExpensaDto) {
     try {
