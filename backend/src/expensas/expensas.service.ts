@@ -67,6 +67,36 @@ export class ExpensasService {
     });
   }
 
+  async findOne(id_exp: number){
+    return this.prisma.expensas.findUnique({
+      where:{
+        id_exp: id_exp,
+      },
+      include: {
+          departamentos: {
+            include: {
+                departamentos_titulares: {
+                where: {
+                  titulares: {
+                    rol_tit: 'TITULAR',
+                  },
+                },
+                include: {
+                  titulares: true,
+                },
+                take: 1, // 👈 garantiza 1 solo propietario
+              },
+              edificios: {
+                include: {
+                  gastoscomunes: true,
+                },
+              },
+            }
+          }
+      },
+    });
+  }
+
   // aca poner el formato var dd exp y pasar datos
   async generateExpensa(): Promise<PDFKit.PDFDocument> {
     // 🔎 1. Buscar expensa con su departamento
@@ -158,6 +188,64 @@ export class ExpensasService {
     console.log('--------------------------------------------------');
     console.log(`📊 FINALIZADO | Éxitos: ${exitosos} | Fallidos: ${expensas.length - exitosos}`);
     console.log('--------------------------------------------------');
+  }
+
+  async sendOneExpensaByEmail(id_exp: number, file?: Express.Multer.File){
+     const expensa = await this.findOne(id_exp);
+      if (!expensa) throw new Error(`No se encontró la expensa con ID ${id_exp}`);
+    const logId = `[Expensa: ${expensa.departamentos.edificios.nom_edif} ${expensa.departamentos.piso_depto} ${expensa.departamentos.letra_depto}]`;
+    let step = 'inicializando';
+      try {       
+
+      step = 'obteniendo emails de titulares';
+      const titulares = await this.titularesService.findByDpto(expensa.id_depto);
+      const emails = titulares?.map(t => t?.titulares?.email_tit).filter(e => !!e) || [];
+
+      // ver como hacer cuando no hay destinatarios
+        if (emails.length === 0) {
+        return { success: false, message: 'La unidad no tiene emails registrados.' };
+      }
+
+      step = 'generando PDF';
+      const expensaDoc = await this.createExpensa(expensa);
+      const pdfBuffer = await this.printer.bufferPdf(expensaDoc);
+
+      step = 'preparando adjuntos';
+      const edif = expensa.departamentos?.edificios?.nom_edif || 'EDIFICIO';
+      
+      // 2. CORRECCIÓN: Usamos letra_depto (el nombre correcto en tu DB)
+      const dpto = `${expensa.departamentos?.piso_depto || ''}${expensa.departamentos?.letra_depto || ''}`;
+      const name = `${edif} ${dpto}`.toUpperCase().trim();
+
+      const attachments: any[] = [{
+        filename: `expensa ${name}.pdf`,
+        content: pdfBuffer,
+        contentType: 'application/pdf',
+      }];
+
+      if (file?.buffer) {
+        attachments.push({
+          filename: file.originalname,
+          content: file.buffer,
+          contentType: file.mimetype,
+        });
+      }
+
+      step = 'enviando correo (SMTP)';
+      await this.mailService.sendMail({
+        to: 'lucas9godoy@gmail.com', // Mantenemos fijo por ahora
+        subject: `Expensa ${name} y Detalle de gastos`,
+        text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
+        attachments,
+      });
+
+      console.log(`✅ ${logId} Enviado correctamente`);
+      return { success: true, id: id_exp };
+
+    } catch (error) {
+       console.error(`❌ ${logId} Falló en el paso [${step}]:`, error.message);
+       return { success: false, error: error.message };
+    }
   }
 
   async update(id_exp: number, updateExpensaDto: UpdateExpensaDto) {

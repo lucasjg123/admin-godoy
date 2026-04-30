@@ -63,12 +63,12 @@ export function useSendExpensas() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const send = async (id_edif: number, file: File) => {
+  const send = async (id_edif: number, file: File, id_exp?: number) => {
     setLoading(true);
     setError(null);
 
     try {
-      const res = await sendExpensas(id_edif, file);
+      const res = await sendExpensas(id_edif, file, id_exp);
       return res;
     } catch (e) {
       setError('Error al enviar expensas');

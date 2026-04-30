@@ -51,6 +51,15 @@ export class ExpensasController {
     };
   }
 
+  @Post(':id_exp/send')
+  @UseInterceptors(FileInterceptor('file')) // Por si mandas un adjunto extra desde el front
+  async sendOne(
+    @Param('id_exp', ParseIntPipe) id_exp: number,
+    @UploadedFile() file?: Express.Multer.File
+  ) {
+    return await this.expensasService.sendOneExpensaByEmail(id_exp, file);
+  }
+
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,

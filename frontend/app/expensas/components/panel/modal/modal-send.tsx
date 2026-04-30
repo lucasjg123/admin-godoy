@@ -14,9 +14,9 @@ import { Input } from '@/components/ui/input';
 import { useEdificioStore } from '@/stores/edificio-store';
 import { useState } from 'react';
 
-type Props = { onClose: () => void };
+type Props = { onClose: () => void; id_exp?: number; };
 
-const ModalSend = ({ onClose }: Props) => {
+const ModalSend = ({ onClose, id_exp }: Props) => {
   const selectedEdificio = useEdificioStore((state) => state.selectedEdificio);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -34,7 +34,7 @@ const ModalSend = ({ onClose }: Props) => {
 
   const handleSend = async () => {
     if (!file) return;
-    const res = await send(selectedEdificio!, file);
+    const res = await send(selectedEdificio!, file, id_exp);
 
     if (res) {
       setConfirmOpen(false);
@@ -47,7 +47,7 @@ const ModalSend = ({ onClose }: Props) => {
       <Dialog open={true} onOpenChange={onClose}>
         <DialogContent className='sm:max-w-3xl'>
           <DialogHeader>
-            <DialogTitle>Enviar expensas</DialogTitle>
+            <DialogTitle>{id_exp ? 'Enviar Expensa Individual' : 'Enviar Expensas del Edificio'}</DialogTitle>
             <DialogDescription />
           </DialogHeader>
 
@@ -80,7 +80,7 @@ const ModalSend = ({ onClose }: Props) => {
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
-        title='¿Desea enviar las expensas por correo?'
+        title={id_exp ? '¿Desea enviar esta expensa?' : '¿Desea enviar todas las expensas?'}
         confirmText='Enviar'
         onConfirm={handleSend}
       />

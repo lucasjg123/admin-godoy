@@ -2,8 +2,9 @@ import { CardFooter } from '@/components/ui/card';
 import { formatShortDate, formatMoney } from '@/lib/formats';
 import { Expensa } from '@/lib/schemas/expensa.schema';
 import { MoneyTable } from './money-table';
+import { Button } from '@/components/ui/button';
 
-const ExpensaFooter = ({ expensa }: { expensa: Expensa }) => {
+const ExpensaFooter = ({ expensa, onSendClick }: { expensa: Expensa, onSendClick: () => void }) => {
   return (
     <CardFooter className='flex-col gap-2 items-start'>
       <MoneyTable
@@ -22,6 +23,18 @@ const ExpensaFooter = ({ expensa }: { expensa: Expensa }) => {
           },
         ]}
       />
+      {/* Botón de enviar */}
+      <Button
+        variant="outline"
+        size="sm"
+        className="w-full flex gap-2"
+        onClick={(e) => {
+          e.preventDefault();
+          onSendClick();
+        }}
+      >
+        Enviar por Email
+      </Button>
     </CardFooter>
   );
 };
