@@ -234,6 +234,7 @@ export class ExpensasService {
       step = 'enviando correo (SMTP)';
       await this.mailService.sendMail({
         to: 'lucas9godoy@gmail.com', // Mantenemos fijo por ahora
+        ...(emails.length > 1 && { cc: ['lucas9leon.lg@gmail.com'] }),
         subject: `Expensa ${name} y Detalle de gastos`,
         text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
         attachments,
