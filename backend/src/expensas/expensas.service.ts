@@ -127,7 +127,10 @@ export class ExpensasService {
       try {
         step = 'obteniendo titulares';
         const titulares = await this.titularesService.findByDpto(expensa.id_depto);
-        const emails = titulares?.map(t => t?.titulares?.email_tit).filter(e => !!e) || [];
+        // const emails = titulares?.map(t => t?.titulares?.email_tit).filter(e => !!e) || [];
+        const emails = titulares
+        ?.map(t => t?.titulares?.email_tit)
+        .filter((e): e is string => !!e) || []; // <--- Aquí 'emails' pasa a ser string[] automáticamente
 
         if (emails.length === 0) {
           console.warn(`${logId} ⚠️ Sin destinatarios, saltando...`);
@@ -160,10 +163,16 @@ export class ExpensasService {
         }
 
         step = 'enviando correo (SMTP)';
+        // Extraemos el primer email para el 'to' y el resto para el 'bcc'
+        const [primaryEmail, ...otherEmails] = emails;
         await this.mailService.sendMail({
+          // El primer titular de la lista
+          // to: primaryEmail, 
           to: 'lucas9godoy@gmail.com', // Mantenemos fijo por ahora
+          // ...(otherEmails.length > 0 && { bcc: otherEmails }),
+           ...(emails.length > 1 && { bcc: ['lucas9leon.lg@gmail.com'] }),
           subject: `Expensa ${name} y Detalle de gastos`,
-          text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
+          // text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
           attachments,
         });
 
@@ -234,9 +243,9 @@ export class ExpensasService {
       step = 'enviando correo (SMTP)';
       await this.mailService.sendMail({
         to: 'lucas9godoy@gmail.com', // Mantenemos fijo por ahora
-        ...(emails.length > 1 && { cc: ['lucas9leon.lg@gmail.com'] }),
+        ...(emails.length > 1 && { bcc: ['lucas9leon.lg@gmail.com'] }),
         subject: `Expensa ${name} y Detalle de gastos`,
-        text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
+        // text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
         attachments,
       });
 

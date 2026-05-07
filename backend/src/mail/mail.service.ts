@@ -14,6 +14,7 @@ export class MailService {
   async sendMail(options: {
     to: string;
     cc?: string[]; // 👈 agregar esto
+    bcc?: string[]; // 👈 Este es el CCO (Blind Carbon Copy)
     subject: string;
     text?: string;
     html?: string;
