@@ -49,7 +49,7 @@ export const buildExpensaTemplate = (
       // 🛡️ Acceso seguro al primer titular
       text: `Titular: ${
         exp.departamentos.departamentos_titulares?.[0]?.titulares 
-          ? `${exp.departamentos.departamentos_titulares[0].titulares.nom_tit} ${exp.departamentos.departamentos_titulares[0].titulares.ape_tit}`
+          ? `${exp.departamentos.departamentos_titulares[0].titulares.nom_tit}, ${exp.departamentos.departamentos_titulares[0].titulares.ape_tit}`
           : ' ' // Texto por defecto si no hay titular
       }`,
       margin: [0, 0, 0, 15],
@@ -61,7 +61,7 @@ export const buildExpensaTemplate = (
       )}`,
       bold: true,
       decoration: 'underline',
-      margin: [0, 0, 0, 8],
+      margin: [0, 0, 0, 0],
     },
 
     // 💰 filas alineadas
@@ -74,6 +74,7 @@ export const buildExpensaTemplate = (
 
     {
       text: `${exp.nota_exp ?? ' '}`,
+      alignment: 'right' as const,
     },
     {
       text: '',

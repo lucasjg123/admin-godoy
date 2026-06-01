@@ -200,18 +200,18 @@ export class ExpensasService {
   }
 
   async sendOneExpensaByEmail(id_exp: number, file?: Express.Multer.File){
-     const expensa = await this.findOne(id_exp);
-      if (!expensa) throw new Error(`No se encontró la expensa con ID ${id_exp}`);
+    const expensa = await this.findOne(id_exp);
+    if (!expensa) throw new Error(`No se encontró la expensa con ID ${id_exp}`);
     const logId = `[Expensa: ${expensa.departamentos.edificios.nom_edif} ${expensa.departamentos.piso_depto} ${expensa.departamentos.letra_depto}]`;
     let step = 'inicializando';
-      try {       
+    try {       
 
       step = 'obteniendo emails de titulares';
       const titulares = await this.titularesService.findByDpto(expensa.id_depto);
       const emails = titulares?.map(t => t?.titulares?.email_tit).filter(e => !!e) || [];
 
       // ver como hacer cuando no hay destinatarios
-        if (emails.length === 0) {
+      if (emails.length === 0) {
         return { success: false, message: 'La unidad no tiene emails registrados.' };
       }
 

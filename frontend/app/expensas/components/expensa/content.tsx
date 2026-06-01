@@ -12,9 +12,20 @@ const ExpensaContent = ({ expensa }: { expensa: Expensa }) => {
       <MoneyTable
         rows={[
           {
-            label: `EXPENSAS MES ${formatPreviousMonth(
-              expensa.departamentos.edificios.gastoscomunes?.vto1_gc
-            )}`,
+            label: (
+              <strong>
+                <u>
+                  EXPENSAS MES {formatPreviousMonth(
+                    expensa.departamentos.edificios.gastoscomunes?.vto1_gc
+                  )}
+                </u>
+              </strong>
+            ),
+            value: '',
+            hideCurrency: true,
+          },
+          {
+            label: `Expensas Extraordinarias`,
             value: expensa.departamentos.edificios.gastoscomunes?.monto_gc,
           },
           {
@@ -23,8 +34,7 @@ const ExpensaContent = ({ expensa }: { expensa: Expensa }) => {
           },
         ]}
       />
-      <br />
-      <div className='mt-4'>
+      <div className='mt-4 mb-2'>
         <Textarea
           name='notas'
           placeholder='Notas de la expensa...'

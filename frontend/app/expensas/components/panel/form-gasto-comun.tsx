@@ -67,9 +67,6 @@ const FormGastoComun = () => {
     }
   };
 
-  // abrir modal para cargar pdf y presionar enviar
-  const handleSend = () => {};
-
   return (
     <>
       <CardContent>

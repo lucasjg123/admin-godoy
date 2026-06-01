@@ -11,8 +11,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { useToastError } from '@/hooks/use-toast-error';
 import { useEdificioStore } from '@/stores/edificio-store';
 import { useState } from 'react';
+import { toast } from 'sonner';
 
 type Props = { onClose: () => void; id_exp?: number; };
 
@@ -22,10 +24,12 @@ const ModalSend = ({ onClose, id_exp }: Props) => {
   const [file, setFile] = useState<File | null>(null);
   const { send, loading, error } = useSendExpensas();
 
+  useToastError(error);
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!file) {
-      alert('Debe seleccionar un PDF');
+      toast.error('Debe seleccionar un PDF');
       return;
     }
 
@@ -37,6 +41,7 @@ const ModalSend = ({ onClose, id_exp }: Props) => {
     const res = await send(selectedEdificio!, file, id_exp);
 
     if (res) {
+      toast.success('Expensa enviada');
       setConfirmOpen(false);
       onClose();
     }

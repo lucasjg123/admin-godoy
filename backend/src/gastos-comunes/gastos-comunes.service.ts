@@ -69,13 +69,22 @@ export class GastosComunesService {
     // dentro de la misma transacción, lo cual es mucho más rápido
     const actualizaciones = departamentos.map((dpto) => {
       const porcentaje = dpto.porc_depto ?? 0;
-      let montoVto1 = Number(((montoBase * porcentaje) / 100).toFixed(2));
+      // let montoVto1 = Number(((montoBase * porcentaje) / 100).toFixed(2));
       // let montoVto2 = Number((montoVto1 * (1 + interes / 100)).toFixed(2));
-      let montoVto2 = Math.round(montoVto1 * (1 + interes / 100));
+      // let montoVto2 = Math.round(montoVto1 * (1 + interes / 100));
+
+      // 1. Calculamos el monto base por porcentaje y redondeamos SIEMPRE para arriba al entero más cercano
+      // Ej: Si daba 15240.12 -> Math.ceil lo transforma en 15241
+      let montoVto1 = Math.ceil((montoBase * porcentaje) / 100);
+
+      // 2. Calculamos el segundo vencimiento aplicando el interés sobre el Vto 1 ya redondeado,
+      // y volvemos a redondear para arriba para asegurar que sea otro entero limpio.
+      let montoVto2 = Math.ceil(montoVto1 * (1 + interes / 100));
 
       return tx.expensas.updateMany({
         where: { id_depto: dpto.id_depto },
         data: {
+          porcentual_exp: montoVto1,
           vto1_exp: montoVto1,
           vto2_exp: montoVto2,
         },
