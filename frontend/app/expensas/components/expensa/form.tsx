@@ -6,40 +6,40 @@ import { useUpdateExpensa } from '../../hooks/use-expensas';
 import { useToastError } from '@/hooks/use-toast-error';
 
 const ExpensaForm = ({ expensa }: { expensa: Expensa }) => {
-  const { update, error } = useUpdateExpensa();
-  useToastError(error);
+  // const { update, error } = useUpdateExpensa();
+  // useToastError(error);
 
-  const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  // const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
+  //   e.preventDefault();
 
-    const formData = new FormData(e.currentTarget);
+  //   const formData = new FormData(e.currentTarget);
 
-    const rawPayload = {
-      nota_exp: formData.get('notas') as string | null,
-    };
+  //   const rawPayload = {
+  //     nota_exp: formData.get('notas') as string | null,
+  //   };
 
-    const parsed = expensaUpdateSchema.safeParse(rawPayload);
+  //   const parsed = expensaUpdateSchema.safeParse(rawPayload);
 
-    if (!parsed.success) {
-      console.error(parsed.error);
-      toast.error('Datos inválidos');
-      return;
-    }
+  //   if (!parsed.success) {
+  //     console.error(parsed.error);
+  //     toast.error('Datos inválidos');
+  //     return;
+  //   }
 
-    const updated = await update(
-      expensa.departamentos.id_edif,
-      expensa.id_exp,
-      parsed.data
-    );
+  //   const updated = await update(
+  //     expensa.departamentos.id_edif,
+  //     expensa.id_exp,
+  //     parsed.data
+  //   );
 
-    if (updated) {
-      toast.success('Expensa actualizada');
-      // triggerRefetch();
-    }
-  };
+  //   if (updated) {
+  //     toast.success('Expensa actualizada');
+  //     // triggerRefetch();
+  //   }
+  // };
 
   return (
-    <form onSubmit={handleSubmit}>
+    // <form onSubmit={handleSubmit}>
       <div className='flex flex-col gap-6'>
         <Textarea
           name='notas'
@@ -56,7 +56,7 @@ const ExpensaForm = ({ expensa }: { expensa: Expensa }) => {
           Agregar nota
         </Button>
       </div>
-    </form>
+    // </form>
   );
 };
 

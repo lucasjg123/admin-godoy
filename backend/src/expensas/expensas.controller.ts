@@ -26,6 +26,7 @@ export class ExpensasController {
     return this.expensasService.findByEdificio(id_edif);
   }
 
+  // gneera expensa pdf estatica
   @Get('pdf')
   async getPdf(@Res() response: Response) {
     const pdfDoc = await this.expensasService.generateExpensa();
@@ -36,6 +37,7 @@ export class ExpensasController {
     pdfDoc.end();
   }
 
+  // envia expensas al edificio
   @Post('send')
   @UseInterceptors(FileInterceptor('file'))
   async sendMail(
@@ -51,6 +53,7 @@ export class ExpensasController {
     };
   }
 
+  //  envia expensa unica
   @Post(':id_exp/send')
   @UseInterceptors(FileInterceptor('file')) // Por si mandas un adjunto extra desde el front
   async sendOne(
@@ -60,6 +63,7 @@ export class ExpensasController {
     return await this.expensasService.sendOneExpensaByEmail(id_exp, file);
   }
 
+  // update
   @Patch(':id')
   update(
     @Param('id', ParseIntPipe) id: number,

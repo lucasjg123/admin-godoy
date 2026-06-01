@@ -100,7 +100,7 @@ export class ExpensasService {
   // aca poner el formato var dd exp y pasar datos
   async generateExpensa(): Promise<PDFKit.PDFDocument> {
     // 🔎 1. Buscar expensa con su departamento
-    const expensas = await this.findByEdificio(9);
+    const expensas = await this.findByEdificio(2);
     const exp = expensas[0];
 
     return this.createExpensa(exp);

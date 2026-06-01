@@ -70,7 +70,7 @@ export const buildExpensaTemplate = (
       exp.departamentos.edificios.gastoscomunes?.monto_gc,
     ),
 
-    moneyRow(`% Participación ${exp.departamentos.porc_depto}`, exp.vto1_exp),
+    moneyRow(`% Participación ${exp.departamentos.porc_depto}`, exp.porcentual_exp),
 
     {
       text: `${exp.nota_exp ?? ' '}`,

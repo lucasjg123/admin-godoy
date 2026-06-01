@@ -4,6 +4,7 @@ import { Expensa } from '@/lib/schemas/expensa.schema';
 import { formatMoney, formatPreviousMonth } from '@/lib/formats';
 import { MoneyRow } from './money-row';
 import { MoneyTable } from './money-table';
+import { Textarea } from '@/components/ui/textarea';
 
 const ExpensaContent = ({ expensa }: { expensa: Expensa }) => {
   return (
@@ -18,12 +19,19 @@ const ExpensaContent = ({ expensa }: { expensa: Expensa }) => {
           },
           {
             label: `% Participación ${expensa.departamentos.porc_depto}`,
-            value: expensa.vto1_exp,
+            value: expensa.porcentual_exp,
           },
         ]}
       />
       <br />
-      <ExpensaForm expensa={expensa} />
+      <div className='mt-4'>
+        <Textarea
+          name='notas'
+          placeholder='Notas de la expensa...'
+          defaultValue={expensa.nota_exp ?? undefined}
+          className="resize-none"
+        />
+      </div>
     </CardContent>
   );
 };
