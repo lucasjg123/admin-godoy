@@ -5,6 +5,7 @@ export const expensaSchema = z.object({
   id_exp: z.number().int(),
   vto1_exp: z.number().nullable(),
   vto2_exp: z.number().nullable(),
+  porcentual_exp: z.number().nullable(),
   id_depto: z.number().int(),
   nota_exp: z.string().nullable(),
   departamentos: departamentoSchema,

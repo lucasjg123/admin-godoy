@@ -61,12 +61,13 @@ model edificios {
 }
 
 model expensas {
-  id_exp        Int           @id @default(autoincrement())
-  vto1_exp      Float?        @default(0)
-  vto2_exp      Float?        @default(0)
-  nota_exp      String?       @db.VarChar(255)
-  id_depto      Int
-  departamentos departamentos @relation(fields: [id_depto], references: [id_depto], onDelete: NoAction, onUpdate: NoAction, map: "id_deptofk")
+  id_exp         Int           @id @default(autoincrement())
+  vto1_exp       Float?        @default(0)
+  vto2_exp       Float?        @default(0)
+  nota_exp       String?       @db.VarChar(255)
+  id_depto       Int
+  porcentual_exp Float?        @default(0)
+  departamentos  departamentos @relation(fields: [id_depto], references: [id_depto], onDelete: NoAction, onUpdate: NoAction, map: "id_deptofk")
 
   @@index([id_depto], map: "id_deptofk_idx")
 }
