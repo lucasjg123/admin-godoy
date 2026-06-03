@@ -1,4 +1,4 @@
-import { useSendExpensas } from '@/app/expensas/hooks/use-expensas';
+import { useSendExpensas } from '@/hooks/use-expensas';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import {

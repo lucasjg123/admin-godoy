@@ -98,8 +98,8 @@ const Recibo = ({ depto, onClose }: ReciboProps) => {
                 <DialogDescription />
               </DialogHeader>
 
-              <ReciboContent
-                titular={depto.departamentos_titulares[0].titulares}
+              <ReciboContent                
+                depto={depto}
               />
 
               <ReciboFooter />

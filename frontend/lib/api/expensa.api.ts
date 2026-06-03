@@ -1,7 +1,9 @@
 import { api } from './axios';
 import {
+  Expensa,
   ExpensaList,
   expensaListSchema,
+  expensaSchema,
   ExpensaUpdate,
   expensaUpdateSchema,
 } from '../schemas/expensa.schema';
@@ -18,6 +20,19 @@ export async function getExpensasByEdificio(
     console.error('Zod schema mismatch:', parsed.error);
 
     // 👉 Error simple para el front
+    throw new Error('Invalid server response');
+  }
+
+  return parsed.data;
+}
+
+export async function getExpensaByDepto(id_edif: number, id_depto: number): Promise<Expensa> {
+  const { data } = await api.get(`/edificios/${id_edif}/expensas/depto/${id_depto}`);
+
+  const parsed = expensaSchema.safeParse(data);
+
+  if (!parsed.success) {
+    console.error('Zod schema mismatch:', parsed.error);
     throw new Error('Invalid server response');
   }
 

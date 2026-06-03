@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Expensa, expensaUpdateSchema } from '@/lib/schemas/expensa.schema';
 import { toast } from 'sonner';
-import { useUpdateExpensa } from '../../hooks/use-expensas';
+import { useUpdateExpensa } from '../../../../hooks/use-expensas';
 import { useToastError } from '@/hooks/use-toast-error';
 
 const ExpensaForm = ({ expensa }: { expensa: Expensa }) => {

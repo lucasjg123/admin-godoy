@@ -2,23 +2,38 @@ import { useFormContext } from 'react-hook-form';
 import { ReciboFormValues } from '@/lib/schemas/recibo.schema';
 import { Titular } from '@/lib/schemas/titulares.schema';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { useEffect } from 'react';
+import { useExpensa } from '@/hooks/use-expensas';
+import { useEdificioStore } from '@/stores/edificio-store';
 
 type Props = {
   titular: Titular;
+  id_depto: number;
+  id_edif: number;
 };
 
-const ContentRight = ({ titular }: Props) => {
+const ContentRight = ({ titular, id_depto, id_edif }: Props) => {
   const {
     register,
     setFocus,
+    setValue,
     formState: { errors },
   } = useFormContext<ReciboFormValues>();
 
+  const { expensa, loading, error } = useExpensa(id_edif, id_depto);
+  
   useEffect(() => {
     setFocus('monto');
-  }, [setFocus]);
+  }, [setFocus]);  
+
+  useEffect(() => {
+    if (expensa) {
+      setValue('monto', expensa.vto1_exp ?? 0, {
+        shouldValidate: true, // Opcional: valida el campo inmediatamente
+        shouldDirty: true,    // Opcional: marca el formulario como modificado
+      });
+    }
+  }, [expensa, setValue]);
 
   return (
     <div className='space-y-4 border p-4 rounded-md'>

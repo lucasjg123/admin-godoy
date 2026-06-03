@@ -6,7 +6,7 @@ import ExpensaFooter from './footer';
 import { useState } from 'react';
 import ModalSend from '../panel/modal/modal-send';
 import { useToastError } from '@/hooks/use-toast-error';
-import { useUpdateExpensa } from '../../hooks/use-expensas';
+import { useUpdateExpensa } from '../../../../hooks/use-expensas';
 import { toast } from 'sonner';
 
 export function ExpensaCard({ expensa }: { expensa: Expensa }) {

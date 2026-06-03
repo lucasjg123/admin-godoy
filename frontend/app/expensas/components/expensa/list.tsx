@@ -1,6 +1,6 @@
 import { ExpensaCard } from './card';
 import { useEdificioStore } from '@/stores/edificio-store';
-import { useExpensas } from '../..//hooks/use-expensas';
+import { useExpensas} from '@/hooks/use-expensas';
 import { useToastError } from '@/hooks/use-toast-error';
 
 const ExpensaList = () => {

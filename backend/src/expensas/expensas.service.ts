@@ -97,6 +97,38 @@ export class ExpensasService {
     });
   }
 
+  async findByDepto(id_depto: number) {
+    return this.prisma.expensas.findFirst({
+      where: {
+        departamentos:{
+          id_depto: id_depto,
+        }
+      },
+      include: {
+          departamentos: {
+            include: {
+                departamentos_titulares: {
+                where: {
+                  titulares: {
+                    rol_tit: 'TITULAR',
+                  },
+                },
+                include: {
+                  titulares: true,
+                },
+                take: 1, // 👈 garantiza 1 solo propietario
+              },
+              edificios: {
+                include: {
+                  gastoscomunes: true,
+                },
+              },
+            }
+          }
+      },
+    });
+  }
+
   // aca poner el formato var dd exp y pasar datos
   async generateExpensa(): Promise<PDFKit.PDFDocument> {
     // 🔎 1. Buscar expensa con su departamento

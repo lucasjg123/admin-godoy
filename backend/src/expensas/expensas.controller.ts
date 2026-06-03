@@ -26,6 +26,11 @@ export class ExpensasController {
     return this.expensasService.findByEdificio(id_edif);
   }
 
+   @Get('depto/:id_depto')
+  findByDepto(@Param('id_depto', ParseIntPipe) id_depto: number) {
+    return this.expensasService.findByDepto(id_depto);
+  }
+
   // gneera expensa pdf estatica
   @Get('pdf')
   async getPdf(@Res() response: Response) {
