@@ -35,7 +35,7 @@ export function ModalProgress({
       onClose();
     }
   };
-
+const isCancelled = progress?.type === 'cancelled';
   const logsEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -97,6 +97,8 @@ export function ModalProgress({
                     ? 'text-green-400'
                     : log.type === 'error'
                       ? 'text-red-400'
+                      : log.type === 'cancelled'  // ← Agregar
+                     ? 'text-yellow-400'
                       : log.type === 'complete'
                         ? 'text-blue-400'
                         : 'text-white'
@@ -111,12 +113,12 @@ export function ModalProgress({
         </div>
 
         <DialogFooter className="flex gap-2">
-          <Button
+           <Button
             variant="destructive"
             onClick={onCancel}
-            disabled={!isRunning}
-          >
-            Cancelar
+            disabled={!isRunning || isCancelled}  // ← Deshabilitar si ya fue cancelado
+            >
+            {isCancelled ? 'Cancelado' : 'Cancelar'}
           </Button>
 
           <Button

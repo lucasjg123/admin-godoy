@@ -6,7 +6,7 @@ import { ExpensaList } from '@/lib/schemas/expensa.schema';
 import { useCallback, useRef, useState } from 'react';
 
 export type SendProgressEvent = {
-  type: 'start' | 'success' | 'error' | 'complete';
+  type: 'start' | 'success' | 'error' | 'complete' | 'cancelled';
   id_exp?: number;
   message: string;
   sent: number;
@@ -31,17 +31,26 @@ export function useSendExpensasMasivo() {
       const total = expensas.length;
       let sent = 0;
       let errors = 0;
+      let wasCancelled = false;
 
       for (let i = 0; i < total; i++) {
         // ✅ Respetar cancelación
         if (cancelRef.current) {
-          setProgress({
-            type: 'complete',
-            message: 'Proceso cancelado',
+          wasCancelled = true;
+         setProgress({
+            type: 'cancelled',
+            message: '❌ Proceso cancelado por el usuario',
             sent,
             remaining: total - sent,
             percentage: Math.round((sent / total) * 100),
           });
+          setLogs((prev) => [...prev, {
+            type: 'cancelled',
+            message: '❌ Proceso cancelado',
+            sent,
+            remaining: total - sent,
+            percentage: Math.round((sent / total) * 100),
+          }]);
           break;
         }
 
@@ -98,14 +107,16 @@ export function useSendExpensasMasivo() {
         }
       }
 
-      // Notificar completado
-      setProgress({
-        type: 'complete',
-        message: `✅ Completado: ${sent} enviadas, ${errors} errores`,
-        sent,
-        remaining: 0,
-        percentage: 100,
-      });
+      // Notificar completado SOLO SI NO FUE CANCELADO
+      if (!wasCancelled) {
+        setProgress({
+          type: 'complete',
+          message: `✅ Completado: ${sent} enviadas, ${errors} errores`,
+          sent,
+          remaining: 0,
+          percentage: 100,
+        });
+      }
 
       setIsRunning(false);
       return { successful: sent, failed: errors };
