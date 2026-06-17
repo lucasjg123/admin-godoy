@@ -61,7 +61,7 @@ export function useSendExpensasMasivo() {
           setLogs((prev) => [...prev, startEvent]);
 
           // ✅ Usar API directa (sin pasar expensas de nuevo)
-          await sendExpensas(id_edif, file, expensa.id_exp);
+          // await sendExpensas(id_edif, file, expensa.id_exp);
           sent++;
 
           // Notificar éxito

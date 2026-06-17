@@ -1,3 +1,4 @@
+// modal-send.tsx - Version actualizada
 import { useSendExpensasMasivo } from '@/app/expensas/hook/use-send-exp-masivo';
 import { useExpensas, useSendExpensas } from '@/app/expensas/hooks/use-expensas';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -18,19 +19,20 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { ModalProgress } from './modal-progress';
 
-type Props = { onClose: () => void; id_exp?: number; };
+type Props = { onClose: () => void; id_exp?: number };
 
 const ModalSend = ({ onClose, id_exp }: Props) => {
   const selectedEdificio = useEdificioStore((state) => state.selectedEdificio);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [progressOpen, setProgressOpen] = useState(false);
+  const [showFileDialog, setShowFileDialog] = useState(true);
 
   // ✅ Obtener expensas 
   const { expensas, loading: loadingExpensas, error: errorExpensas } = useExpensas(selectedEdificio);
   // ✅ Hook para envío masivo
   const { sendMasivo, cancel, isRunning, progress, logs } = useSendExpensasMasivo();
-  // Hook para envío individual # hay q refactorizar para q use el mismo sendMasivo pero con un solo expensa
+  // Hook para envío individual
   const { send, loading, error } = useSendExpensas();
 
   useToastError(error || errorExpensas);
@@ -42,78 +44,97 @@ const ModalSend = ({ onClose, id_exp }: Props) => {
       return;
     }
 
-    setConfirmOpen(true); // abre confirmación
+    setConfirmOpen(true);
   };
 
   const handleSend = async () => {
     if (!file) return;
 
-    // si tiene id_exp => envío individual, sino envío masivo
     if (id_exp) {
+      // Envío individual
       const res = await send(selectedEdificio!, file, id_exp);
 
       if (res) {
         toast.success('Expensa enviada');
         setConfirmOpen(false);
+        setShowFileDialog(false);
         onClose();
       }
-    }
-    else {
+    } else {
+      // Envío masivo - cerrar dialog de archivo y mostrar progreso
       setConfirmOpen(false);
+      setShowFileDialog(false);
       setProgressOpen(true);
-      await sendMasivo(selectedEdificio!, file, expensas!);      
-      onClose();
+      await sendMasivo(selectedEdificio!, file, expensas!);
     }
+  };
+
+  const handleCancel = () => {
+    cancel();
+    toast.info('Envío cancelado');
+  };
+
+  const handleProgressClose = () => {
+    setProgressOpen(false);
+    onClose();
   };
 
   return (
     <>
-      <Dialog open={true} onOpenChange={onClose}>
-        <DialogContent className='sm:max-w-3xl'>
+      {/* Dialog de selección de archivo */}
+      <Dialog open={showFileDialog} onOpenChange={setShowFileDialog}>
+        <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle>{id_exp ? 'Enviar Expensa Individual' : 'Enviar Expensas del Edificio'}</DialogTitle>
+            <DialogTitle>
+              {id_exp ? 'Enviar Expensa Individual' : 'Enviar Expensas del Edificio'}
+            </DialogTitle>
             <DialogDescription />
           </DialogHeader>
 
           <form onSubmit={handleSubmit}>
             <Input
-              type='file'
-              accept='application/pdf'
+              type="file"
+              accept="application/pdf"
               onChange={(e) => {
                 const selected = e.target.files?.[0];
                 if (selected) {
                   setFile(selected);
                 }
               }}
+              disabled={loadingExpensas || !selectedEdificio}
             />
-            
-            <DialogFooter className='mt-6'>
+
+            <DialogFooter className="mt-6">
               <DialogClose asChild>
-                <Button type='button' variant='outline'>
+                <Button type="button" variant="outline">
                   Cancelar
                 </Button>
               </DialogClose>
 
-              <Button type='submit'>Enviar</Button>
+              <Button type="submit" disabled={loadingExpensas || !file}>
+                Enviar
+              </Button>
             </DialogFooter>
-
           </form>
-          </DialogContent>
+        </DialogContent>
       </Dialog>
 
+      {/* Modal de progreso */}
       <ModalProgress
         open={progressOpen}
         isRunning={isRunning}
         progress={progress}
         logs={logs}
-        // onCancel={handleCancel}
+        onCancel={handleCancel}
+        onClose={handleProgressClose}
       />
 
+      {/* Confirmación */}
       <ConfirmDialog
         open={confirmOpen}
         onOpenChange={setConfirmOpen}
         title={id_exp ? '¿Desea enviar esta expensa?' : '¿Desea enviar todas las expensas?'}
-        confirmText='Enviar'
+        confirmText="Enviar"
         onConfirm={handleSend}
       />
     </>
