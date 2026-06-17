@@ -4,9 +4,9 @@ import { useExpensasStore } from '@/stores/expensa-store';
 import { useEffect, useState } from 'react';
 
 export function useExpensas(id_edif: number | null) {
-  const { shouldRefetch, consumeRefetch } = useExpensasStore();
+  const { shouldRefetch, consumeRefetch, setExpensas, expensas } = useExpensasStore();
 
-  const [expensas, setExpensas] = useState<ExpensaList>([]);
+  // const [expensas, setExpensas] = useState<ExpensaList>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -80,3 +80,4 @@ export function useSendExpensas() {
 
   return { send, loading, error };
 }
+

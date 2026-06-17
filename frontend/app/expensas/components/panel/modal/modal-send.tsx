@@ -1,4 +1,5 @@
-import { useSendExpensas } from '@/app/expensas/hooks/use-expensas';
+import { useSendExpensasMasivo } from '@/app/expensas/hook/use-send-exp-masivo';
+import { useExpensas, useSendExpensas } from '@/app/expensas/hooks/use-expensas';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import {
@@ -15,6 +16,7 @@ import { useToastError } from '@/hooks/use-toast-error';
 import { useEdificioStore } from '@/stores/edificio-store';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { ModalProgress } from './modal-progress';
 
 type Props = { onClose: () => void; id_exp?: number; };
 
@@ -22,9 +24,16 @@ const ModalSend = ({ onClose, id_exp }: Props) => {
   const selectedEdificio = useEdificioStore((state) => state.selectedEdificio);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [file, setFile] = useState<File | null>(null);
+  const [progressOpen, setProgressOpen] = useState(false);
+
+  // ✅ Obtener expensas 
+  const { expensas, loading: loadingExpensas, error: errorExpensas } = useExpensas(selectedEdificio);
+  // ✅ Hook para envío masivo
+  const { sendMasivo, cancel, isRunning, progress, logs } = useSendExpensasMasivo();
+  // Hook para envío individual # hay q refactorizar para q use el mismo sendMasivo pero con un solo expensa
   const { send, loading, error } = useSendExpensas();
 
-  useToastError(error);
+  useToastError(error || errorExpensas);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,11 +47,21 @@ const ModalSend = ({ onClose, id_exp }: Props) => {
 
   const handleSend = async () => {
     if (!file) return;
-    const res = await send(selectedEdificio!, file, id_exp);
 
-    if (res) {
-      toast.success('Expensa enviada');
+    // si tiene id_exp => envío individual, sino envío masivo
+    if (id_exp) {
+      const res = await send(selectedEdificio!, file, id_exp);
+
+      if (res) {
+        toast.success('Expensa enviada');
+        setConfirmOpen(false);
+        onClose();
+      }
+    }
+    else {
       setConfirmOpen(false);
+      setProgressOpen(true);
+      await sendMasivo(selectedEdificio!, file, expensas!);      
       onClose();
     }
   };
@@ -81,6 +100,14 @@ const ModalSend = ({ onClose, id_exp }: Props) => {
           </form>
           </DialogContent>
       </Dialog>
+
+      <ModalProgress
+        open={progressOpen}
+        isRunning={isRunning}
+        progress={progress}
+        logs={logs}
+        // onCancel={handleCancel}
+      />
 
       <ConfirmDialog
         open={confirmOpen}
