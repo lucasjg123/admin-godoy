@@ -70,14 +70,14 @@ export function useSendExpensasMasivo() {
           setLogs((prev) => [...prev, startEvent]);
 
           // ✅ Usar API directa (sin pasar expensas de nuevo)
-          // await sendExpensas(id_edif, file, expensa.id_exp);
+          await sendExpensas(id_edif, file, expensa.id_exp);
           sent++;
 
           // Notificar éxito
           const successEvent: SendProgressEvent = {
             type: 'success',
             id_exp: expensa.id_exp,
-            message: `✔ Expensa ${expensa.id_exp} enviada`,
+            message: `✔ Expensa ${expensa.departamentos.piso_depto} '${expensa.departamentos.letra_depto}' enviada`,
             sent,
             remaining: total - sent,
             percentage: Math.round((sent / total) * 100),
@@ -91,7 +91,7 @@ export function useSendExpensasMasivo() {
           const errorEvent: SendProgressEvent = {
             type: 'error',
             id_exp: expensa.id_exp,
-            message: `✖ Expensa ${expensa.id_exp}`,
+            message: `✖ Expensa ${expensa.departamentos.piso_depto} '${expensa.departamentos.letra_depto}' falló`,
             sent,
             remaining: total - sent,
             percentage: Math.round((sent / total) * 100),

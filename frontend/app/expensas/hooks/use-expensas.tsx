@@ -63,7 +63,7 @@ export function useSendExpensas() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const send = async (id_edif: number, file: File, id_exp?: number) => {
+  const send = async (id_edif: number, file: File, id_exp: number) => {
     setLoading(true);
     setError(null);
 

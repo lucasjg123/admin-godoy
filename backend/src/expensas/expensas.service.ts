@@ -113,6 +113,7 @@ export class ExpensasService {
   }
 
 
+  // este no deberia usarse mas ya q no tengo feedback del progreso
   async sendExpensaByEmail(id_edif: number, file?: Express.Multer.File) {
     const expensas = await this.findByEdificio(id_edif);
     console.log(`🚀 Iniciando envío secuencial: ${expensas.length} expensas.`);
@@ -170,7 +171,7 @@ export class ExpensasService {
           // to: primaryEmail, 
           to: 'lucas9godoy@gmail.com', // Mantenemos fijo por ahora
           // ...(otherEmails.length > 0 && { bcc: otherEmails }),
-           ...(emails.length > 1 && { bcc: ['lucas9leon.lg@gmail.com'] }),
+          ...(emails.length > 1 && { bcc: ['lucas9leon.lg@gmail.com'] }),
           subject: `Expensa ${name} y Detalle de gastos`,
           // text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
           attachments,
@@ -199,6 +200,7 @@ export class ExpensasService {
     console.log('--------------------------------------------------');
   }
 
+  // este se usa tanto para enviar exp ind como para enviar exp masivo (con feedback de progreso). Se maneja en el front el uso de c/u
   async sendOneExpensaByEmail(id_exp: number, file?: Express.Multer.File){
     const expensa = await this.findOne(id_exp);
     if (!expensa) throw new Error(`No se encontró la expensa con ID ${id_exp}`);
@@ -241,11 +243,13 @@ export class ExpensasService {
       }
 
       step = 'enviando correo (SMTP)';
+      const [primaryEmail, ...otherEmails] = emails;
       await this.mailService.sendMail({
+        // to: primaryEmail,
         to: 'lucas9godoy@gmail.com', // Mantenemos fijo por ahora
-        ...(emails.length > 1 && { bcc: ['lucas9leon.lg@gmail.com'] }),
+        // ...(otherEmails.length > 0 && { bcc: otherEmails }),
+        ...(otherEmails.length > 0 && { bcc: ['lucas9leon.lg@gmail.com'] }),
         subject: `Expensa ${name} y Detalle de gastos`,
-        // text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
         attachments,
       });
 
