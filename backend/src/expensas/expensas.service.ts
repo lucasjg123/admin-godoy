@@ -145,92 +145,94 @@ export class ExpensasService {
   }
 
 
-  async sendExpensaByEmail(id_edif: number, file?: Express.Multer.File) {
-    const expensas = await this.findByEdificio(id_edif);
-    console.log(`🚀 Iniciando envío secuencial: ${expensas.length} expensas.`);
+  // este no deberia usarse mas ya q no tengo feedback del progreso
+  // async sendExpensaByEmail(id_edif: number, file?: Express.Multer.File) {
+  //   const expensas = await this.findByEdificio(id_edif);
+  //   console.log(`🚀 Iniciando envío secuencial: ${expensas.length} expensas.`);
 
-    // 1. Tipamos el array para que TypeScript no chille con el "never"
-    const results: { status: string; id: number; error?: string }[] = [];
+  //   // 1. Tipamos el array para que TypeScript no chille con el "never"
+  //   const results: { status: string; id: number; error?: string }[] = [];
 
-    for (const expensa of expensas) {
-      let step = 'inicializando';
-      const logId = `[Expensa: ${expensa.departamentos.edificios.nom_edif} ${expensa.departamentos.piso_depto} ${expensa.departamentos.letra_depto}]`;
+  //   for (const expensa of expensas) {
+  //     let step = 'inicializando';
+  //     const logId = `[Expensa: ${expensa.departamentos.edificios.nom_edif} ${expensa.departamentos.piso_depto} ${expensa.departamentos.letra_depto}]`;
 
-      try {
-        step = 'obteniendo titulares';
-        const titulares = await this.titularesService.findByDpto(expensa.id_depto);
-        // const emails = titulares?.map(t => t?.titulares?.email_tit).filter(e => !!e) || [];
-        const emails = titulares
-        ?.map(t => t?.titulares?.email_tit)
-        .filter((e): e is string => !!e) || []; // <--- Aquí 'emails' pasa a ser string[] automáticamente
+  //     try {
+  //       step = 'obteniendo titulares';
+  //       const titulares = await this.titularesService.findByDpto(expensa.id_depto);
+  //       // const emails = titulares?.map(t => t?.titulares?.email_tit).filter(e => !!e) || [];
+  //       const emails = titulares
+  //       ?.map(t => t?.titulares?.email_tit)
+  //       .filter((e): e is string => !!e) || []; // <--- Aquí 'emails' pasa a ser string[] automáticamente
 
-        if (emails.length === 0) {
-          console.warn(`${logId} ⚠️ Sin destinatarios, saltando...`);
-          continue;
-        }
+  //       if (emails.length === 0) {
+  //         console.warn(`${logId} ⚠️ Sin destinatarios, saltando...`);
+  //         continue;
+  //       }
 
-        step = 'generando PDF';
-        const expensaDoc = await this.createExpensa(expensa);
-        const pdfBuffer = await this.printer.bufferPdf(expensaDoc);
+  //       step = 'generando PDF';
+  //       const expensaDoc = await this.createExpensa(expensa);
+  //       const pdfBuffer = await this.printer.bufferPdf(expensaDoc);
 
-        step = 'preparando adjuntos';
-        const edif = expensa.departamentos?.edificios?.nom_edif || 'EDIFICIO';
+  //       step = 'preparando adjuntos';
+  //       const edif = expensa.departamentos?.edificios?.nom_edif || 'EDIFICIO';
         
-        // 2. CORRECCIÓN: Usamos letra_depto (el nombre correcto en tu DB)
-        const dpto = `${expensa.departamentos?.piso_depto || ''}${expensa.departamentos?.letra_depto || ''}`;
-        const name = `${edif} ${dpto}`.toUpperCase().trim();
+  //       // 2. CORRECCIÓN: Usamos letra_depto (el nombre correcto en tu DB)
+  //       const dpto = `${expensa.departamentos?.piso_depto || ''}${expensa.departamentos?.letra_depto || ''}`;
+  //       const name = `${edif} ${dpto}`.toUpperCase().trim();
 
-        const attachments: any[] = [{
-          filename: `expensa ${name}.pdf`,
-          content: pdfBuffer,
-          contentType: 'application/pdf',
-        }];
+  //       const attachments: any[] = [{
+  //         filename: `expensa ${name}.pdf`,
+  //         content: pdfBuffer,
+  //         contentType: 'application/pdf',
+  //       }];
 
-        if (file?.buffer) {
-          attachments.push({
-            filename: file.originalname,
-            content: file.buffer,
-            contentType: file.mimetype,
-          });
-        }
+  //       if (file?.buffer) {
+  //         attachments.push({
+  //           filename: file.originalname,
+  //           content: file.buffer,
+  //           contentType: file.mimetype,
+  //         });
+  //       }
 
-        step = 'enviando correo (SMTP)';
-        // Extraemos el primer email para el 'to' y el resto para el 'bcc'
-        const [primaryEmail, ...otherEmails] = emails;
-        await this.mailService.sendMail({
-          // El primer titular de la lista
-          // to: primaryEmail, 
-          to: 'lucas9godoy@gmail.com', // Mantenemos fijo por ahora
-          // ...(otherEmails.length > 0 && { bcc: otherEmails }),
-           ...(emails.length > 1 && { bcc: ['lucas9leon.lg@gmail.com'] }),
-          subject: `Expensa ${name} y Detalle de gastos`,
-          // text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
-          attachments,
-        });
+  //       step = 'enviando correo (SMTP)';
+  //       // Extraemos el primer email para el 'to' y el resto para el 'bcc'
+  //       const [primaryEmail, ...otherEmails] = emails;
+  //       await this.mailService.sendMail({
+  //         // El primer titular de la lista
+  //         // to: primaryEmail, 
+  //         to: 'lucas9godoy@gmail.com', // Mantenemos fijo por ahora
+  //         // ...(otherEmails.length > 0 && { bcc: otherEmails }),
+  //         ...(emails.length > 1 && { bcc: ['lucas9leon.lg@gmail.com'] }),
+  //         subject: `Expensa ${name} y Detalle de gastos`,
+  //         // text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
+  //         attachments,
+  //       });
 
-        console.log(`✅ ${logId} Enviado correctamente`);
-        results.push({ status: 'fulfilled', id: expensa.id_exp });
+  //       console.log(`✅ ${logId} Enviado correctamente`);
+  //       results.push({ status: 'fulfilled', id: expensa.id_exp });
 
-        // 3. PAUSA DE SEGURIDAD: Aumentamos a 3 segundos para evitar el error 421 de Google
-        await new Promise(resolve => setTimeout(resolve, 3000));
+  //       // 3. PAUSA DE SEGURIDAD: Aumentamos a 3 segundos para evitar el error 421 de Google
+  //       await new Promise(resolve => setTimeout(resolve, 3000));
 
-      } catch (error) {
-        console.error(`❌ ${logId} Falló en el paso [${step}]:`, error.message);
-        results.push({ status: 'rejected', id: expensa.id_exp, error: error.message });
+  //     } catch (error) {
+  //       console.error(`❌ ${logId} Falló en el paso [${step}]:`, error.message);
+  //       results.push({ status: 'rejected', id: expensa.id_exp, error: error.message });
         
-        // Pausa extra si falló por SMTP para dejar que el servidor respire
-        if (step === 'enviando correo (SMTP)') {
-          await new Promise(resolve => setTimeout(resolve, 5000));
-        }
-      }
-    }
+  //       // Pausa extra si falló por SMTP para dejar que el servidor respire
+  //       if (step === 'enviando correo (SMTP)') {
+  //         await new Promise(resolve => setTimeout(resolve, 5000));
+  //       }
+  //     }
+  //   }
 
-    const exitosos = results.filter(r => r.status === 'fulfilled').length;
-    console.log('--------------------------------------------------');
-    console.log(`📊 FINALIZADO | Éxitos: ${exitosos} | Fallidos: ${expensas.length - exitosos}`);
-    console.log('--------------------------------------------------');
-  }
+  //   const exitosos = results.filter(r => r.status === 'fulfilled').length;
+  //   console.log('--------------------------------------------------');
+  //   console.log(`📊 FINALIZADO | Éxitos: ${exitosos} | Fallidos: ${expensas.length - exitosos}`);
+  //   console.log('--------------------------------------------------');
+  // }
 
+  // este se usa tanto para enviar exp ind como para enviar exp masivo (con feedback de progreso). Se maneja en el front el uso de c/u
   async sendOneExpensaByEmail(id_exp: number, file?: Express.Multer.File){
     const expensa = await this.findOne(id_exp);
     if (!expensa) throw new Error(`No se encontró la expensa con ID ${id_exp}`);
@@ -240,7 +242,8 @@ export class ExpensasService {
 
       step = 'obteniendo emails de titulares';
       const titulares = await this.titularesService.findByDpto(expensa.id_depto);
-      const emails = titulares?.map(t => t?.titulares?.email_tit).filter(e => !!e) || [];
+     // const emails = titulares?.map(t => t?.titulares?.email_tit).filter(e => !!e) || [];
+     const emails = titulares?.map(t => t?.titulares?.email_tit).filter((e): e is string => !!e) || [];
 
       // ver como hacer cuando no hay destinatarios
       if (emails.length === 0) {
@@ -273,11 +276,13 @@ export class ExpensasService {
       }
 
       step = 'enviando correo (SMTP)';
+      const [primaryEmail, ...otherEmails] = emails;
       await this.mailService.sendMail({
-        to: 'lucas9godoy@gmail.com', // Mantenemos fijo por ahora
-        ...(emails.length > 1 && { bcc: ['lucas9leon.lg@gmail.com'] }),
-        subject: `Expensa ${name} y Detalle de gastos`,
-        // text: `Adjuntamos expensa de la unidad ${name}.\nEmails reales: ${emails.join(', ')}`,
+        to: primaryEmail,
+        // to: 'lucas9godoy@gmail.com', // Mantenemos fijo por ahora
+        ...(otherEmails.length > 0 && { bcc: otherEmails }),
+        // ...(otherEmails.length > 0 && { bcc: ['lucas9leon.lg@gmail.com'] }),
+        subject: `Expensas ${name} y Detalle de gastos`,
         attachments,
       });
 

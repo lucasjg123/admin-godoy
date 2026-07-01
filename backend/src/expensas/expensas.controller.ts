@@ -42,21 +42,21 @@ export class ExpensasController {
     pdfDoc.end();
   }
 
-  // envia expensas al edificio
-  @Post('send')
-  @UseInterceptors(FileInterceptor('file'))
-  async sendMail(
-    @Param('id_edif', ParseIntPipe) id_edif: number,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    console.log('estamos en /send');
-    console.log('Archivo recibido:', file?.originalname);
-    await this.expensasService.sendExpensaByEmail(id_edif, file);
-    return {
-      success: true,
-      message: 'Expensas enviadas correctamente',
-    };
-  }
+  // envia expensas al edificio (no se usa, mantenido como referencia)
+  // @Post('send')
+  // @UseInterceptors(FileInterceptor('file'))
+  // async sendMail(
+  //   @Param('id_edif', ParseIntPipe) id_edif: number,
+  //   @UploadedFile() file: Express.Multer.File,
+  // ) {
+  //   console.log('estamos en /send');
+  //   console.log('Archivo recibido:', file?.originalname);
+  //   await this.expensasService.sendExpensaByEmail(id_edif, file);
+  //   return {
+  //     success: true,
+  //     message: 'Expensas enviadas correctamente',
+  //   };
+  // }
 
   //  envia expensa unica
   @Post(':id_exp/send')

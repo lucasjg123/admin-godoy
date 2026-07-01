@@ -62,14 +62,12 @@ export async function updateExpensas(
 export async function sendExpensas(
   id_edif: number,
   file: File,
-  id_exp?: number
+  id_exp: number
 ) {
   const formData = new FormData();
   formData.append('file', file);
 
-  const url = id_exp 
-    ? `/edificios/${id_edif}/expensas/${id_exp}/send` 
-    : `/edificios/${id_edif}/expensas/send`;
+  const url = `/edificios/${id_edif}/expensas/${id_exp}/send`;
 
   const { data } = await api.post(
     url,
