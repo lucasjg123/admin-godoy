@@ -69,21 +69,42 @@ export function useSendExpensasMasivo() {
           setProgress(startEvent);
           setLogs((prev) => [...prev, startEvent]);
 
-          // ✅ Usar API directa (sin pasar expensas de nuevo)
-          await sendExpensas(id_edif, file, expensa.id_exp);
-          sent++;
+          // 1. CORRECCIÓN: Capturar la respuesta que viene del backend
+          // (Asegúrate de que tu función sendExpensas haga un return de response.data o response.json())
+          const res = await sendExpensas(id_edif, file, expensa.id_exp);
 
-          // Notificar éxito
-          const successEvent: SendProgressEvent = {
-            type: 'success',
-            id_exp: expensa.id_exp,
-            message: `✔ Expensa ${expensa.departamentos.piso_depto} '${expensa.departamentos.letra_depto}' enviada`,
-            sent,
-            remaining: total - sent,
-            percentage: Math.round((sent / total) * 100),
-          };
-          setProgress(successEvent);
-          setLogs((prev) => [...prev, successEvent]);
+          if (res && res.success === false) {
+            // Manejar el caso controlado del backend (ej: "La unidad no tiene emails registrados.")
+            errors++;
+            
+            const warningEvent: SendProgressEvent = {
+              type: 'error', // O puedes inventar un type: 'warning' si tu interfaz lo soporta
+              id_exp: expensa.id_exp,
+              message: `⚠️ Expensa ${expensa.departamentos.piso_depto} '${expensa.departamentos.letra_depto}' omitida: ${res.message}`,
+              sent,
+              remaining: total - sent,
+              percentage: Math.round((sent / total) * 100),
+              error: res.message,
+            };
+            setProgress(warningEvent);
+            setLogs((prev) => [...prev, warningEvent]);
+
+          } else {
+            // El flujo normal de éxito si res.success fue true o si no maneja esa estructura
+            sent++;
+
+            // Notificar éxito
+            const successEvent: SendProgressEvent = {
+              type: 'success',
+              id_exp: expensa.id_exp,
+              message: `✔ Expensa ${expensa.departamentos.piso_depto} '${expensa.departamentos.letra_depto}' enviada`,
+              sent,
+              remaining: total - sent,
+              percentage: Math.round((sent / total) * 100),
+            };
+            setProgress(successEvent);
+            setLogs((prev) => [...prev, successEvent]);
+          }
         } catch (error) {
           errors++;
 
