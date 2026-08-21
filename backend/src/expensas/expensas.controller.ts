@@ -26,7 +26,16 @@ export class ExpensasController {
     return this.expensasService.findByEdificio(id_edif);
   }
 
-   @Get('depto/:id_depto')
+  @Post()
+  // reader expensa
+  create(
+    @Param('id_edif', ParseIntPipe) id_edif: number,
+    @Body() createExpensaDto: CreateExpensaDto,
+  ) {
+    return this.expensasService.create(id_edif, createExpensaDto);
+  }
+
+  @Get('depto/:id_depto')
   findByDepto(@Param('id_depto', ParseIntPipe) id_depto: number) {
     return this.expensasService.findByDepto(id_depto);
   }
