@@ -29,7 +29,7 @@ export class CobranzaService {
     await doc.destroy();
 
     const blocks = fullText
-      .split(/(?=CONSORCIO EDIFICIO)/g)
+      .split(/(?=CONSORCIO\s+EDIFICIO)/g)
       .map((b) => b.trim())
       .filter(Boolean);
 
@@ -52,17 +52,23 @@ export class CobranzaService {
     }
 
     const toColumnText = (items: TextItem[]) => {
-      const rows = new Map<number, TextItem[]>();
-      for (const it of items) {
-        const key = Math.round(it.y / 2) * 2; // tolerancia para agrupar la misma fila
-        const arr = rows.get(key) ?? [];
-        arr.push(it);
-        rows.set(key, arr);
+      const sorted = [...items].sort((a, b) => b.y - a.y);
+      const rows: TextItem[][] = [];
+      const rowTolerance = 3; // px de variacion de baseline tolerados dentro de una misma fila
+
+      for (const item of sorted) {
+        const currentRow = rows[rows.length - 1];
+        const refY = currentRow?.[0]?.y;
+        if (currentRow && refY !== undefined && Math.abs(refY - item.y) <= rowTolerance) {
+          currentRow.push(item);
+        } else {
+          rows.push([item]);
+        }
       }
-      return [...rows.entries()]
-        .sort((a, b) => b[0] - a[0])
-        .map(([, rowItems]) =>
-          rowItems
+
+      return rows
+        .map((rowItems) =>
+          [...rowItems]
             .sort((a, b) => a.x - b.x)
             .map((i) => i.str)
             .join(' '),
@@ -83,7 +89,7 @@ export class CobranzaService {
     const vto2 = block.match(/2\s*Vto\.?\s*([\d/]+)\s*\$?\s*([\d.,]+)/);
 
     return {
-      edificio: get(/CONSORCIO EDIFICIO\s+([^\n]+)/),
+      edificio: get(/CONSORCIO\s+EDIFICIO\s+([^\n]+)/),
       ubicacion: get(/Ubicaci[oó]n\s*:?\s*([^\n]+)/),
       titular: get(/Titular\s*:?\s*([^\n]+)/),
       periodo: get(/EXPENSAS\s+MES\s+([\d/]+)/),
