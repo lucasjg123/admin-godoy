@@ -11,6 +11,7 @@ export interface ExpensaCupon {
   expensas_ordinarias_total: number | null;
   porcentaje_participacion: number | null;
   expensas_ordinarias_monto: number | null;
+  adeuda: string | null;
   vencimiento_1: Vencimiento | null;
   vencimiento_2: Vencimiento | null;
 }

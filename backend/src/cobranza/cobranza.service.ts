@@ -87,6 +87,7 @@ export class CobranzaService {
     );
     const vto1 = block.match(/1\s*Vto\.?\s*([\d/]+)\s*\$?\s*([\d.,]+)/);
     const vto2 = block.match(/2\s*Vto\.?\s*([\d/]+)\s*\$?\s*([\d.,]+)/);
+    const adeuda = this.parseAdeuda(block);
 
     return {
       edificio: get(/CONSORCIO\s+EDIFICIO\s+([^\n]+)/),
@@ -100,6 +101,7 @@ export class CobranzaService {
         ? Number(participacion[1].replace(',', '.'))
         : null,
       expensas_ordinarias_monto: toNumber(participacion?.[2] ?? null),
+      adeuda,
       vencimiento_1: vto1
         ? { fecha: vto1[1], monto: toNumber(vto1[2]) }
         : null,
@@ -107,5 +109,16 @@ export class CobranzaService {
         ? { fecha: vto2[1], monto: toNumber(vto2[2]) }
         : null,
     };
+  }
+
+  // texto libre entre "% Participacion" y "1 Vto." (ej. "ADEUDA EXPENSAS", "ADEUDA EXPENSAS (03, 04, 05, 06/26)", "ADEUDA EXPENSA ANT.")
+  private parseAdeuda(block: string): string | null {
+    const match = block.match(
+      /%\s*Participaci[oó]n[^\n]*\n([\s\S]*?)1\s*Vto\.?/,
+    );
+    if (!match) return null;
+
+    const text = match[1].replace(/\s+/g, ' ').trim();
+    return /ADEUDA/i.test(text) ? text : null;
   }
 }
