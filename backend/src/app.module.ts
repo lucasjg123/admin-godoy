@@ -8,6 +8,7 @@ import { MailModule } from './mail/mail.module';
 import { DepartamentosModule } from './departamentos/departamentos.module';
 import { TitularesModule } from './titulares/titulares.module';
 import { RecibosModule } from './recibos/recibos.module';
+import { CobranzaModule } from './cobranza/cobranza.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { RecibosModule } from './recibos/recibos.module';
     DepartamentosModule,
     TitularesModule,
     RecibosModule,
+    CobranzaModule,
   ],
 })
 export class AppModule {}
