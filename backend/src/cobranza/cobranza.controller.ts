@@ -23,4 +23,12 @@ export class CobranzaController {
     const cupones = await this.cobranzaService.parse(file.buffer);
     return { total: cupones.length, cupones };
   }
+
+  @Post('aplicar')
+  @UseInterceptors(FileInterceptor('file'))
+  async aplicar(@UploadedFile() file?: Express.Multer.File) {
+    if (!file) throw new BadRequestException('Debe adjuntar un archivo PDF');
+    if (file.mimetype !== 'application/pdf') throw new BadRequestException('El archivo debe ser un PDF');
+    return this.cobranzaService.aplicar(file.buffer);
+  }
 }
