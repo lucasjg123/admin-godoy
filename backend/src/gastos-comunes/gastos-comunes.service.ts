@@ -5,23 +5,38 @@ import { Prisma } from '@prisma/client';
 
 type Tx = Prisma.TransactionClient;
 
+type UpdateGastoComunPayload = {
+  monto_gc?: number;
+  vto1_gc?: Date;
+  vto2_gc?: Date;
+};
+
 @Injectable()
 export class GastosComunesService {
   constructor(private prisma: PrismaService) {}
-
-  private async updateGastoComun(
-    tx: Tx,
+  
+  async update(
     idEdif: number,
-    dto: UpdateGastosComunDto,
+    payload: UpdateGastoComunPayload,
   ) {
-    return tx.gastoscomunes.update({
-      where: { id_edif: idEdif },
-      data: {
-        monto_gc: Number(Number(dto.monto_gc).toFixed(2)),
-        interes_gc: Number(Number(dto.interes_gc).toFixed(2)),
-        vto1_gc: dto.vto1_gc ? new Date(dto.vto1_gc) : undefined,
-        vto2_gc: dto.vto2_gc ? new Date(dto.vto2_gc) : undefined,
-      },
+    // Validate dates to prevent invalid Date objects from being sent to Prisma
+    const validateDate = (date: Date | undefined): Date | undefined => {
+      if (!date) return undefined;
+      return isNaN(date.getTime()) ? undefined : date;
+    };
+
+    const validatedPayload = {
+      ...payload,
+      vto1_gc: validateDate(payload.vto1_gc),
+      vto2_gc: validateDate(payload.vto2_gc),
+    };
+
+    // Sin conversiones, todo tipado correctamente
+    return this.prisma.$transaction(async (tx: Tx) => {
+      return await tx.gastoscomunes.update({
+        where: { id_edif: idEdif },
+        data: validatedPayload,  // ← Directo, sin transformaciones
+      });
     });
   }
 

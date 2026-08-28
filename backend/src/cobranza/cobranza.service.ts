@@ -1,10 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import type { PDFPageProxy } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { ExpensaCupon } from './types/expensa-cupon.type';
+import { GastosComunesService } from 'src/gastos-comunes/gastos-comunes.service';
 
 const toNumber = (valor?: string | null): number | null => {
   if (!valor) return null;
   return Number(valor.replace(/\./g, '').replace(',', '.'));
+};
+
+const parseDate = (dateStr?: string | null): Date | null => {
+  if (!dateStr) return null;
+  // Parse DD/MM/YY format (e.g., "10/08/26" -> August 10, 2026)
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return null;
+  
+  const [day, month, year] = parts.map(Number);
+  if (!day || !month || !year) return null;
+  
+  // YY format: 00-99 -> 2000-2099
+  const fullYear = year < 100 ? 2000 + year : year;
+  const date = new Date(fullYear, month - 1, day);
+  
+  // Validate the date
+  return isNaN(date.getTime()) ? null : date;
 };
 
 interface TextItem {
@@ -15,6 +33,7 @@ interface TextItem {
 
 @Injectable()
 export class CobranzaService {
+  constructor(private readonly gastosComunesService: GastosComunesService) {}
   async parse(buffer: Buffer): Promise<ExpensaCupon[]> {
     // pdfjs-dist es ESM-only, se importa dinamicamente desde este modulo CJS
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
@@ -111,7 +130,7 @@ export class CobranzaService {
     };
   }
 
-  // texto libre entre "% Participacion" y "1 Vto." (ej. "ADEUDA EXPENSAS", "ADEUDA EXPENSAS (03, 04, 05, 06/26)", "ADEUDA EXPENSA ANT.")
+  // extraccion de deuda
   private parseAdeuda(block: string): string | null {
     const match = block.match(
       /%\s*Participaci[oó]n[^\n]*\n([\s\S]*?)1\s*Vto\.?/,
@@ -120,5 +139,28 @@ export class CobranzaService {
 
     const text = match[1].replace(/\s+/g, ' ').trim();
     return /ADEUDA/i.test(text) ? text : null;
+  }
+
+  // actualizar datos
+  // - [ ] actualizar gasto comun
+	// - [ ] iterar cupones 
+	// - [ ] identificar departamentos
+	// - [ ] (posible actuaizar lector pdf para q separe en letra y depto)
+	// 	  > ver la mejor forma de matchear
+	// - [ ]  actualizar expensas
+  async aplicar(buffer: Buffer, idEdif: number): Promise<void> {
+    const cupones = await this.parse(buffer);
+    console.log('Aplicando cupones:', cupones);
+
+    if (cupones.length > 0) {
+    const cupon = cupones[0];
+    await this.gastosComunesService.update(idEdif, {
+        monto_gc: cupon.expensas_ordinarias_total || undefined,
+        vto1_gc: parseDate(cupon.vencimiento_1?.fecha) || undefined,
+        vto2_gc: parseDate(cupon.vencimiento_2?.fecha) || undefined,
+      });
+    }
+    
+      
   }
 }
