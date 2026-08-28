@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { departamentos } from '@prisma/client';
 import type { PDFPageProxy } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { ExpensaCupon } from './types/expensa-cupon.type';
 import { GastosComunesService } from 'src/gastos-comunes/gastos-comunes.service';
+import { DepartamentosService } from 'src/departamentos/departamentos.service';
 
 const toNumber = (valor?: string | null): number | null => {
   if (!valor) return null;
@@ -33,7 +35,9 @@ interface TextItem {
 
 @Injectable()
 export class CobranzaService {
-  constructor(private readonly gastosComunesService: GastosComunesService) {}
+  constructor(private readonly gastosComunesService: GastosComunesService,
+    private readonly departamentosService: DepartamentosService
+  ) {}
   async parse(buffer: Buffer): Promise<ExpensaCupon[]> {
     // pdfjs-dist es ESM-only, se importa dinamicamente desde este modulo CJS
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
@@ -113,18 +117,18 @@ export class CobranzaService {
       ubicacion: get(/Ubicaci[oó]n\s*:?\s*([^\n]+)/),
       titular: get(/Titular\s*:?\s*([^\n]+)/),
       periodo: get(/EXPENSAS\s+MES\s+([\d/]+)/),
-      expensas_ordinarias_total: toNumber(
+      monto_gc: toNumber(
         get(/Expensas Ordinarias\s*\$?\s*([\d.,]+)/),
       ),
       porcentaje_participacion: participacion
         ? Number(participacion[1].replace(',', '.'))
         : null,
-      expensas_ordinarias_monto: toNumber(participacion?.[2] ?? null),
+      monto: toNumber(participacion?.[2] ?? null),
       adeuda,
-      vencimiento_1: vto1
+      vto_1: vto1
         ? { fecha: vto1[1], monto: toNumber(vto1[2]) }
         : null,
-      vencimiento_2: vto2
+      vto_2: vto2
         ? { fecha: vto2[1], monto: toNumber(vto2[2]) }
         : null,
     };
@@ -141,26 +145,69 @@ export class CobranzaService {
     return /ADEUDA/i.test(text) ? text : null;
   }
 
+  private parsePisoLetra(ubicacion: string | null, idEdif: number): { piso: string | null; letra: string | null } {
+    const ID_EDIF_KARA = 9;
+    const ORDINALES: Record<string, string> = {
+      PRIMER: '1', SEGUNDO: '2', TERCER: '3', CUARTO: '4', QUINTO: '5',
+      SEXTO: '6', SEPTIMO: '7', OCTAVO: '8', NOVENO: '9', DECIMO: '10',
+    };
+    if (!ubicacion) return { piso: null, letra: null };
+    const normalized = ubicacion.replace(/\s+/g, ' ').trim();
+
+    if (idEdif === ID_EDIF_KARA) {
+      // "PRIMER PISO" -> piso_depto fijo "PISO", letra_depto = número del ordinal
+      const match = normalized.match(/^([A-ZÁÉÍÓÚ]+)\s+PISO$/i);
+      const numero = match ? ORDINALES[match[1].toUpperCase()] : undefined;
+      return numero ? { piso: 'PISO', letra: numero } : { piso: null, letra: null };
+    }
+
+    // resto de edificios: último token = letra, lo demás = piso
+    const tokens = normalized.split(' ');
+    if (tokens.length < 2) return { piso: normalized, letra: null };
+    return { piso: tokens.slice(0, -1).join(' '), letra: tokens[tokens.length - 1] };
+  }
+
   // actualizar datos
-  // - [ ] actualizar gasto comun
 	// - [ ] iterar cupones 
 	// - [ ] identificar departamentos
 	// - [ ] (posible actuaizar lector pdf para q separe en letra y depto)
 	// 	  > ver la mejor forma de matchear
 	// - [ ]  actualizar expensas
-  async aplicar(buffer: Buffer, idEdif: number): Promise<void> {
+  async aplicar(buffer: Buffer, idEdif: number): Promise<departamentos[] | undefined> {
     const cupones = await this.parse(buffer);
     console.log('Aplicando cupones:', cupones);
 
-    if (cupones.length > 0) {
+    if (cupones.length == 0) return;
+
     const cupon = cupones[0];
+    // actulizamos gasto comun con los datos del cupon
     await this.gastosComunesService.update(idEdif, {
-        monto_gc: cupon.expensas_ordinarias_total || undefined,
-        vto1_gc: parseDate(cupon.vencimiento_1?.fecha) || undefined,
-        vto2_gc: parseDate(cupon.vencimiento_2?.fecha) || undefined,
-      });
+      monto_gc: cupon.monto_gc || undefined,
+      vto1_gc: parseDate(cupon.vto_1?.fecha) || undefined,
+      vto2_gc: parseDate(cupon.vto_2?.fecha) || undefined,
+    });
+
+    let departamentos: departamentos[] =[];
+    // iteramos cupones y actualizamos expensas de cada departamento
+    for (const cupon of cupones) {
+      //identificar departamento por ubicacion
+      const { piso, letra } = this.parsePisoLetra(cupon.ubicacion, idEdif); 
+      const depto = await this.departamentosService.findByPisoLetra(idEdif, piso, letra);
+       if (!depto) {
+        console.warn(`No se encontró departamento para ubicacion="${cupon.ubicacion}"`);
+        continue;
+      }
+      departamentos.push(depto);
+      // campos a actualizar en expensas: monto_participacion, vto1, vto2, deuda.
+
+      // Actualizamos expensas del departamento correspondiente
+      // await this.gastosComunesService.updateExpensas(idEdif, {
+      //   porcentaje,
+      //   vto1: montoVto1,
+      //   vto2: montoVto2,
+      // });
     }
-    
+    return departamentos;   
       
   }
 }

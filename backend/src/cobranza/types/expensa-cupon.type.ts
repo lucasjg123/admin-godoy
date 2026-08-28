@@ -8,10 +8,10 @@ export interface ExpensaCupon {
   ubicacion: string | null;
   titular: string | null;
   periodo: string | null;
-  expensas_ordinarias_total: number | null;
+  monto_gc: number | null;
   porcentaje_participacion: number | null;
-  expensas_ordinarias_monto: number | null;
+  monto: number | null;
   adeuda: string | null;
-  vencimiento_1: Vencimiento | null;
-  vencimiento_2: Vencimiento | null;
+  vto_1: Vencimiento | null;
+  vto_2: Vencimiento | null;
 }

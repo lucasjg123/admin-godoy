@@ -7,5 +7,6 @@ import { TitularesModule } from 'src/titulares/titulares.module';
   controllers: [DepartamentosController],
   providers: [DepartamentosService],
   imports: [TitularesModule],
+  exports: [DepartamentosService],
 })
 export class DepartamentosModule {}

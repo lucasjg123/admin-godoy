@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { departamentos } from '@prisma/client';
 import { CreateDepartamentoDto } from './dto/create-departamento.dto';
 import { UpdateDepartamentoDto } from './dto/update-departamento.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
@@ -82,5 +83,24 @@ export class DepartamentosService {
 
   remove(id: number) {
     return `This action removes a #${id} departamento`;
+  }
+
+  private normalize(str: string): string {
+    return str.toUpperCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
+  }
+
+  async findByPisoLetra(idEdif: number, piso: string | null, letra: string | null): Promise<departamentos | null> {
+    if (!piso || !letra) return null;
+
+    const deptos = await this.prisma.departamentos.findMany({
+      where: { id_edif: idEdif },
+    });
+
+    const pisoNorm = this.normalize(piso);
+    const letraNorm = this.normalize(letra);
+
+    return deptos.find(
+      (d) => this.normalize(d.piso_depto) === pisoNorm && this.normalize(d.letra_depto) === letraNorm,
+    ) ?? null;
   }
 }
