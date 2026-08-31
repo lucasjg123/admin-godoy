@@ -137,12 +137,11 @@ export class CobranzaService {
   // extraccion de deuda
   private parseAdeuda(block: string): string | null {
     const match = block.match(
-      /%\s*Participaci[oó]n[^\n]*\n([\s\S]*?)1\s*Vto\.?/,
+      /%\s*Participaci[oó]n[^\n]*\n[\s\S]*?(ADEUDA[\s\S]*?)1\s*Vto\.?/i
     );
     if (!match) return null;
 
-    const text = match[1].replace(/\s+/g, ' ').trim();
-    return /ADEUDA/i.test(text) ? text : null;
+    return match[1].replace(/\s+/g, ' ').trim();
   }
 
   private parsePisoLetra(ubicacion: string | null, idEdif: number): { piso: string | null; letra: string | null } {
