@@ -9,5 +9,6 @@ import { TitularesModule } from 'src/titulares/titulares.module';
   controllers: [ExpensasController],
   providers: [ExpensasService],
   imports: [PrinterModule, MailModule, TitularesModule],
+  exports: [ExpensasService],
 })
 export class ExpensasModule {}

@@ -4,6 +4,7 @@ import type { PDFPageProxy } from 'pdfjs-dist/legacy/build/pdf.mjs';
 import { ExpensaCupon } from './types/expensa-cupon.type';
 import { GastosComunesService } from 'src/gastos-comunes/gastos-comunes.service';
 import { DepartamentosService } from 'src/departamentos/departamentos.service';
+import { ExpensasService } from 'src/expensas/expensas.service';
 
 const toNumber = (valor?: string | null): number | null => {
   if (!valor) return null;
@@ -36,7 +37,8 @@ interface TextItem {
 @Injectable()
 export class CobranzaService {
   constructor(private readonly gastosComunesService: GastosComunesService,
-    private readonly departamentosService: DepartamentosService
+    private readonly departamentosService: DepartamentosService,
+    private readonly expensasService: ExpensasService
   ) {}
   async parse(buffer: Buffer): Promise<ExpensaCupon[]> {
     // pdfjs-dist es ESM-only, se importa dinamicamente desde este modulo CJS
@@ -166,15 +168,9 @@ export class CobranzaService {
     return { piso: tokens.slice(0, -1).join(' '), letra: tokens[tokens.length - 1] };
   }
 
-  // actualizar datos
-	// - [ ] iterar cupones 
-	// - [ ] identificar departamentos
-	// - [ ] (posible actuaizar lector pdf para q separe en letra y depto)
-	// 	  > ver la mejor forma de matchear
-	// - [ ]  actualizar expensas
   async aplicar(buffer: Buffer, idEdif: number): Promise<departamentos[] | undefined> {
     const cupones = await this.parse(buffer);
-    console.log('Aplicando cupones:', cupones);
+    // console.log('Aplicando cupones:', cupones);
 
     if (cupones.length == 0) return;
 
@@ -197,14 +193,21 @@ export class CobranzaService {
         continue;
       }
       departamentos.push(depto);
-      // campos a actualizar en expensas: monto_participacion, vto1, vto2, deuda.
 
-      // Actualizamos expensas del departamento correspondiente
-      // await this.gastosComunesService.updateExpensas(idEdif, {
-      //   porcentaje,
-      //   vto1: montoVto1,
-      //   vto2: montoVto2,
-      // });
+      // buscar expensas del edifico
+      const expensa = await this.expensasService.findByDepto(depto.id_depto);
+      if (!expensa) {
+        console.warn(`No se encontraron expensas para depto id_depto="${depto.id_depto}"`);
+        continue;
+      }
+
+      // llamar a update solo con los campos escalares a modificar (no la entidad completa con relaciones)
+      await this.expensasService.update(expensa.id_exp, {
+        porcentual_exp: cupon.monto,
+        vto1_exp: cupon.vto_1?.monto ?? null,
+        vto2_exp: cupon.vto_2?.monto ?? null,
+        nota_exp: cupon.adeuda,
+      });
     }
     return departamentos;   
       
