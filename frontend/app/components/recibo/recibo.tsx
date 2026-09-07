@@ -49,6 +49,8 @@ const Recibo = ({ depto, onClose }: ReciboProps) => {
       anio: currentYear.toString(),
       meses: [defaultMonth],
       mensaje: `${saludo} ${titular.nom_tit}, ¿cómo estás?. Te envío el recibo de pago.\nMuchas gracias! Saludos!!`,
+      useCustomPeriodo: false,
+      customPeriodo: '',
     },
     mode: 'onBlur', // o onBlur al salir
   });

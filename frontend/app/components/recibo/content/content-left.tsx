@@ -8,7 +8,8 @@ type Props = {
 };
 
 const ContentLeft = ({ titular }: Props) => {
-  const { register } = useFormContext<ReciboFormValues>();
+  const { register, watch, formState: { errors } } = useFormContext<ReciboFormValues>();
+  const useCustomPeriodo = watch('useCustomPeriodo');
 
   return (
     <div className='space-y-4 border p-4 rounded-md'>
@@ -23,15 +24,48 @@ const ContentLeft = ({ titular }: Props) => {
         <label className='text-sm font-medium'>PERIODO</label>
 
         <div className='mt-2 border p-3 rounded space-y-3'>
-          <select
-            {...register('anio')}
-            className='border p-2 rounded w-full bg-muted'
-          >
-            <option value='2026'>2026</option>
-            <option value='2025'>2025</option>
-          </select>
+          {!useCustomPeriodo ? (
+            <>
+              <select
+                {...register('anio')}
+                className='border p-2 rounded w-full bg-muted'
+              >
+                <option value='2026'>2026</option>
+                <option value='2025'>2025</option>
+              </select>
 
-          <MesSelector />
+              <MesSelector />
+            </>
+          ) : null}
+
+          <div className='flex items-center gap-2'>
+            <input
+              type='checkbox'
+              {...register('useCustomPeriodo')}
+              className='cursor-pointer'
+            />
+            <label className='text-sm cursor-pointer'>
+              Usar período personalizado
+            </label>
+          </div>
+
+          {useCustomPeriodo && (
+            <>
+              <input
+                type='text'
+                {...register('customPeriodo')}
+                placeholder='Ej: ENERO 2024'
+                className={`border p-2 rounded w-full ${
+                  errors.customPeriodo ? 'border-red-500' : ''
+                }`}
+              />
+              {errors.customPeriodo && (
+                <p className='text-sm text-red-500'>
+                  {errors.customPeriodo.message}
+                </p>
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -5,6 +5,8 @@ import {
   IsString,
   MinLength,
   IsPositive,
+  IsBoolean,
+  IsOptional,
 } from 'class-validator';
 
 export class CreateReciboDto {
@@ -29,4 +31,12 @@ export class CreateReciboDto {
 
   @IsPositive()
   monto: number;
+
+  @IsBoolean()
+  @IsOptional()
+  useCustomPeriodo?: boolean;
+
+  @IsString()
+  @IsOptional()
+  customPeriodo?: string;
 }

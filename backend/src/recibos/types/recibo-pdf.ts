@@ -2,6 +2,8 @@ export type ReciboPdfData = {
   anio: string;
   meses: string[];
   monto: number;
+  useCustomPeriodo?: boolean;
+  customPeriodo?: string;
 
   depto: {
     id: number;

@@ -59,7 +59,9 @@ export const buildReciboTemplate = (
           width: 'auto',
           text: [
             { text: 'PERIODO: ', bold: true },
-            `${formatMeses(data.meses).toUpperCase()} ${data.anio}`,
+            data.useCustomPeriodo && data.customPeriodo
+              ? data.customPeriodo
+              : `${formatMeses(data.meses).toUpperCase()} ${data.anio}`,
           ],
           alignment: 'right',
         },
@@ -95,7 +97,9 @@ export const buildReciboTemplate = (
           text: 'EN PAGO DEL PORCENTUAL QUE LE CORRESPONDE SEGÚN LIQUIDACION: ',
           bold: true,
         },
-        `EXPENSAS ${formatMeses(data.meses).toUpperCase()} ${data.anio}.-`,
+        data.useCustomPeriodo && data.customPeriodo
+          ? `EXPENSAS ${data.customPeriodo}.-`
+          : `EXPENSAS ${formatMeses(data.meses).toUpperCase()} ${data.anio}.-`,
       ],
     },
 

@@ -10,6 +10,7 @@ const MesSelector = () => {
   } = useFormContext<ReciboFormValues>();
 
   const mesesSeleccionados = watch('meses') || [];
+  const useCustomPeriodo = watch('useCustomPeriodo');
 
   const toggleMes = (mes: string) => {
     const updated = mesesSeleccionados.includes(mes)
@@ -29,7 +30,7 @@ const MesSelector = () => {
       <div
         className={`grid grid-cols-2 grid-rows-6 grid-flow-col gap-2 text-sm border p-3 rounded ${
           hasError ? 'border-red-500' : ''
-        }`}
+        } ${useCustomPeriodo ? 'opacity-50 pointer-events-none' : ''}`}
       >
         {mesesLista.map((mes) => (
           <label
@@ -40,6 +41,7 @@ const MesSelector = () => {
               type='checkbox'
               checked={mesesSeleccionados.includes(mes)}
               onChange={() => toggleMes(mes)}
+              disabled={useCustomPeriodo}
             />
             {mes}
           </label>

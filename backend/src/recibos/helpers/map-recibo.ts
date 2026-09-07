@@ -12,6 +12,8 @@ export function mapToReciboPdfData(
     anio: dto.anio,
     meses: dto.meses,
     monto: dto.monto,
+    useCustomPeriodo: dto.useCustomPeriodo,
+    customPeriodo: dto.customPeriodo,
 
     depto: {
       id: depto.id_depto,
