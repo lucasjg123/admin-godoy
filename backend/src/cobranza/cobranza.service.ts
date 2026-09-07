@@ -54,7 +54,8 @@ export class CobranzaService {
     await doc.destroy();
 
     const blocks = fullText
-      .split(/(?=CONSORCIO\s+EDIFICIO)/g)
+      // .split(/(?=CONSORCIO\s+EDIFICIO)/g)
+      .split(/(?=(?:CONSORCIO\s+)?EDIFICIO\s+\S)/g)
       .map((b) => b.trim())
       .filter(Boolean);
 
@@ -115,7 +116,8 @@ export class CobranzaService {
     const adeuda = this.parseAdeuda(block);
 
     return {
-      edificio: get(/CONSORCIO\s+EDIFICIO\s+([^\n]+)/),
+      // edificio: get(/CONSORCIO\s+EDIFICIO\s+([^\n]+)/),
+      edificio: get(/(?:CONSORCIO\s+)?EDIFICIO\s+([^\n]+)/),
       ubicacion: get(/Ubicaci[oó]n\s*:?\s*([^\n]+)/),
       titular: get(/Titular\s*:?\s*([^\n]+)/),
       periodo: get(/EXPENSAS\s+MES\s+([\d/]+)/),
@@ -135,15 +137,21 @@ export class CobranzaService {
         : null,
     };
   }
-
-  // extraccion de deuda
+  
   private parseAdeuda(block: string): string | null {
     const match = block.match(
-      /%\s*Participaci[oó]n[^\n]*\n[\s\S]*?(ADEUDA[\s\S]*?)1\s*Vto\.?/i
+      /%\s*Participaci[oó]n[^\n]*\n([\s\S]*?)1\s*Vto\.?/,
     );
     if (!match) return null;
 
-    return match[1].replace(/\s+/g, ' ').trim();
+    // conserva el texto tal cual figura en el pdf, respetando el orden de los renglones
+    const text = match[1]
+      .split('\n')
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .join('\n');
+
+    return text || null;
   }
 
   private parsePisoLetra(ubicacion: string | null, idEdif: number): { piso: string | null; letra: string | null } {
