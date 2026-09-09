@@ -56,6 +56,36 @@ const ContentRight = ({ titular, id_depto, id_edif }: Props) => {
         )}
       </div>
 
+      {expensa && (
+        <div className='border-t pt-4'>
+          <p className='font-medium mb-3'>Datos de Expensa</p>
+          <div className='flex flex-col gap-2'>
+            <div>
+              <div className='flex items-center gap-2 justify-end'>
+                <p className=' font-bold'>Participación</p>
+                <p className='font-medium'>${expensa.porcentual_exp}</p>
+              </div>
+              <div className='flex '>
+                <p className=' font-bold'>Nota</p>
+                <p className='font-medium text-right'>{expensa.nota_exp || '-'}</p>
+              </div>
+            </div>
+            
+            <div>
+              <div className='flex items-center gap-2 justify-end'>
+                <p className=' font-bold'>Vto 1</p>
+                <p className='font-medium'>${expensa.vto1_exp}</p>
+              </div>
+              <div className='flex items-center gap-2 justify-end'>
+                <p className='font-bold'>Vto 2</p>
+                <p className='font-medium'>${expensa.vto2_exp}</p>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      )}
+
       <div className='flex items-center gap-2 mb-1'>
         <Label>Monto abonado: $</Label>
         <input
