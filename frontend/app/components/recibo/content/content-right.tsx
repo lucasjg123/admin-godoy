@@ -46,7 +46,7 @@ const ContentRight = ({ titular, id_depto, id_edif }: Props) => {
         <label className='text-sm font-medium'>Mensaje de Correo</label>
         <textarea
           {...register('mensaje')}
-          className={`w-full border rounded p-2 mt-2 bg-muted ${
+          className={`w-full h-25 border rounded p-2 mt-2 bg-muted ${
             errors.mensaje ? 'border-red-500 focus-visible:ring-red-500' : ''
           }`}
           rows={5}
@@ -58,15 +58,13 @@ const ContentRight = ({ titular, id_depto, id_edif }: Props) => {
 
       {expensa && (
         <div className='border-t pt-4'>
-          <p className='font-medium mb-3'>Datos de Expensa</p>
           <div className='flex flex-col gap-2'>
             <div>
               <div className='flex items-center gap-2 justify-end'>
-                <p className=' font-bold'>Participación</p>
-                <p className='font-medium'>${expensa.porcentual_exp}</p>
+                <p className=' font-bold'>Participación $</p>
+                <p className='border p-2 rounded bg-muted w-24 text-right'>{expensa.porcentual_exp}</p>
               </div>
               <div className='flex '>
-                <p className=' font-bold'>Nota</p>
                 <p className='font-medium text-right'>{expensa.nota_exp || '-'}</p>
               </div>
             </div>
@@ -74,11 +72,11 @@ const ContentRight = ({ titular, id_depto, id_edif }: Props) => {
             <div>
               <div className='flex items-center gap-2 justify-end'>
                 <p className=' font-bold'>Vto 1</p>
-                <p className='font-medium'>${expensa.vto1_exp}</p>
+                <p className='border p-2 rounded bg-muted w-24 text-right'>{expensa.vto1_exp}</p>
               </div>
               <div className='flex items-center gap-2 justify-end'>
                 <p className='font-bold'>Vto 2</p>
-                <p className='font-medium'>${expensa.vto2_exp}</p>
+                <p className='border p-2 rounded bg-muted w-24 text-right'>{expensa.vto2_exp}</p>
               </div>
             </div>
             
