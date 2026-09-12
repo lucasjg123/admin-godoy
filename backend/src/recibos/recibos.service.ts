@@ -49,17 +49,74 @@ export class RecibosService {
       where: { id_tit: dto.id_tit },
     });
 
-    await this.mailService.sendMail({
-      to: titular?.email_tit ?? 'lucas9godoy@gmail.com',
-      subject: 'Recibo de pago expensas',
-      text: `${dto.mensaje}`,
-      attachments: [
-        {
-          filename: `recibo_de_pago.pdf`,
-          content: pdfBuffer,
-          contentType: 'application/pdf',
-        },
-      ],
+    const depto = await this.prisma.departamentos.findUnique({
+      where: { id_depto: dto.id_depto },
+      include: {
+        edificios: true,
+      },
     });
+
+    // Enviar email
+    // await this.mailService.sendMail({
+    //   to: titular?.email_tit ?? 'lucas9godoy@gmail.com',
+    //   subject: 'Recibo de pago expensas',
+    //   text: `${dto.mensaje}`,
+    //   attachments: [
+    //     {
+    //       filename: `recibo_de_pago.pdf`,
+    //       content: pdfBuffer,
+    //       contentType: 'application/pdf',
+    //     },
+    //   ],
+    // });
+
+    // Si el email se envió exitosamente, notificar a n8n
+    await this.sendPaymentNotificationToN8n(dto, depto);
+  }
+
+  private async sendPaymentNotificationToN8n(
+    dto: CreateReciboDto,
+    depto: any,
+  ) {
+    try {
+      const payload = {
+        sheetId: depto?.edificios?.id_google_sheet,
+        anio: dto.anio,
+        depto: `${depto?.piso_depto} "${depto?.letra_depto}"`,
+        mes: dto.meses[0],
+        valorRegistro: 'PAGO',
+      };
+
+      console.log(
+        'Enviando notificación a n8n con payload:',
+        JSON.stringify(payload, null, 2),
+      );
+
+      const response = await fetch(
+        process.env.N8N_WEBHOOK_URL ??
+          'http://host.docker.internal:5678/webhook-test/cobranza/registrar-pago',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        },
+      );
+
+      if (!response.ok) {
+        console.error(
+          `Error enviando notificación a n8n: ${response.status} ${response.statusText}`,
+        );
+      } else {
+        console.log('Notificación enviada a n8n exitosamente');
+      }
+    } catch (error: any) {
+      console.error(
+        'Error al conectar con n8n:',
+        error?.message || error,
+      );
+      console.error('Detalle del error:', error?.cause?.code);
+    }
   }
 }
