@@ -1,5 +1,8 @@
 FROM node:20-alpine
 
+# bash/libstdc++ required for VS Code Server (Dev Containers attach) to run inside this Alpine image
+RUN apk add --no-cache bash libstdc++ libgcc ca-certificates
+
 WORKDIR /app
 
 COPY package*.json ./
