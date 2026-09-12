@@ -53,6 +53,7 @@ model edificios {
   id_edif       Int             @id @default(autoincrement())
   cod_dom       Int
   nom_edif      String          @db.VarChar(20)
+  id_google_sheet String?         @db.VarChar(255)
   departamentos departamentos[]
   domicilios    domicilios      @relation(fields: [cod_dom], references: [cod_dom], onDelete: NoAction, onUpdate: NoAction, map: "edificios_ibfk_1")
   gastoscomunes gastoscomunes?
