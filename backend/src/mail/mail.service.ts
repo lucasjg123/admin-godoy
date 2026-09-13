@@ -24,9 +24,10 @@ export class MailService {
       contentType?: string;
     }[];
   }) {
-    await this.transporter.sendMail({
+    const response = await this.transporter.sendMail({
       from: process.env.MAIL_USER,
       ...options,
     });
+    return response; // Retorna el resultado de nodemailer
   }
 }
