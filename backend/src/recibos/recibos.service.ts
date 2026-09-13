@@ -56,22 +56,38 @@ export class RecibosService {
       },
     });
 
-    // Enviar email
-    // await this.mailService.sendMail({
-    //   to: titular?.email_tit ?? 'lucas9godoy@gmail.com',
-    //   subject: 'Recibo de pago expensas',
-    //   text: `${dto.mensaje}`,
-    //   attachments: [
-    //     {
-    //       filename: `recibo_de_pago.pdf`,
-    //       content: pdfBuffer,
-    //       contentType: 'application/pdf',
-    //     },
-    //   ],
-    // });
+    // Enviar email con validación
+    let emailSent = false;
+    let emailError: string | null = null;
+    
+    try {
+      await this.mailService.sendMail({
+        to: titular?.email_tit ?? 'lucas9godoy@gmail.com',
+        subject: 'Recibo de pago expensas',
+        text: `${dto.mensaje}`,
+        attachments: [
+          {
+            filename: `recibo_de_pago.pdf`,
+            content: pdfBuffer,
+            contentType: 'application/pdf',
+          },
+        ],
+      });
+      emailSent = true;
+    } catch (error) {
+      emailError = error instanceof Error ? error.message : 'Error desconocido al enviar email';
+      console.error('Error al enviar email:', emailError);
+    }
 
     // Si el email se envió exitosamente, notificar a n8n
-    await this.sendPaymentNotificationToN8n(dto, depto);
+    const n8nResult = await this.sendPaymentNotificationToN8n(dto, depto);
+
+    return {
+      emailSent,
+      emailError,
+      n8nSuccess: n8nResult.success,
+      n8nError: n8nResult.error,
+    };
   }
 
   private async sendPaymentNotificationToN8n(
@@ -108,15 +124,20 @@ export class RecibosService {
         console.error(
           `Error enviando notificación a n8n: ${response.status} ${response.statusText}`,
         );
-      } else {
-        console.log('Notificación enviada a n8n exitosamente');
+        return {
+          success: false,
+          error: `Error n8n: ${response.statusText}`,
+        };
       }
-    } catch (error: any) {
-      console.error(
-        'Error al conectar con n8n:',
-        error?.message || error,
-      );
-      console.error('Detalle del error:', error?.cause?.code);
+
+      return { success: true, error: null };
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Error desconocido';
+      console.error('Error al conectar con n8n:', errorMsg);
+      return {
+        success: false,
+        error: `No se pudo conectar con n8n: ${errorMsg}`,
+      };
     }
   }
 }
