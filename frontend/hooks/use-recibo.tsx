@@ -31,9 +31,25 @@ export function useSendRecibo() {
     setLoading(true);
     setError(null);
     try {
-      return await sendRecibo(recibo);
+      const response = await sendRecibo(recibo);
+
+      // Validar si la operación fue realmente exitosa
+      if (!response.success) {
+        let errorMsg = 'Error al enviar el recibo';
+        if (!response.email.success && response.email.error) {
+          errorMsg += `Email: ${response.email.error}`;
+        }
+        if (!response.n8n.success && response.n8n.error) {
+          errorMsg +=
+            (errorMsg.includes('Email') ? ' | ' : '') +
+            `Pago: ${response.n8n.error}`;
+        }
+        setError(errorMsg);
+      }
+      return response;
     } catch (err) {
-      setError('Error al generar recibo');
+      const errorMsg = err instanceof Error ? err.message : 'Error desconocido';
+      setError(errorMsg);
       return null;
     } finally {
       setLoading(false);

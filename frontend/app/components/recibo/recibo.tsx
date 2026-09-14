@@ -80,8 +80,11 @@ const Recibo = ({ depto, onClose }: ReciboProps) => {
 
   const handleSend = async () => {
     if (!reciboData) return;
-    await sendRecibo(reciboData); // tu endpoint de mail
-    toast.success('Recibo enviado');
+    const response = await sendRecibo(reciboData);
+
+    if (!response?.success) return; // el error ya se muestra vía useToastError
+
+    toast.success('✅ Recibo enviado y pago registrado');
     setConfirmOpen(false);
     onClose(); // cierra el dialog principal
   };
