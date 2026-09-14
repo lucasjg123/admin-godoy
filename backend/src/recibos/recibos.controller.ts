@@ -32,21 +32,6 @@ export class RecibosController {
   @Post('/send')
   async sendMail(@Body() createReciboDto: CreateReciboDto) {
     const result = await this.recibosService.sendReciboByEmail(createReciboDto);
-    
-    // Si ambos procesos fueron exitosos
-    if (result.emailSent && result.n8nSuccess) {
-      return {
-        success: true,
-        message: 'Recibo enviado y pago registrado correctamente',
-        ...result,
-      };
-    }
-
-    // Si hubo errores, retornar con success: false
-    return {
-      success: false,
-      message: 'Hubo errores al procesar el recibo',
-      ...result,
-    };
+    return result;
   }
 }

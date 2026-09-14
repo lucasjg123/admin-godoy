@@ -57,7 +57,7 @@ export class RecibosService {
     });
 
     // Enviar email con validación
-    let emailSent = false;
+    let emailSuccess = false;
     let emailError: string | null = null;
     
     try {
@@ -73,20 +73,26 @@ export class RecibosService {
           },
         ],
       });
-      emailSent = true;
+      emailSuccess = true;
     } catch (error) {
       emailError = error instanceof Error ? error.message : 'Error desconocido al enviar email';
       console.error('Error al enviar email:', emailError);
+      // ABORTAR aquí si el email falla, no intentar notificar a n8n
+      return {
+        success: false,
+        email: { success: false, error: emailError },
+        n8n: { success: false, error: 'No se notificó a n8n porque el email falló' },
+      };
     }
 
-    // Si el email se envió exitosamente, notificar a n8n
+    // Si el email se envió exitosamente, ENTONCES notificar a n8n
     const n8nResult = await this.sendPaymentNotificationToN8n(dto, depto);
 
+    // Retornar estructura ordenada
     return {
-      emailSent,
-      emailError,
-      n8nSuccess: n8nResult.success,
-      n8nError: n8nResult.error,
+      success: n8nResult.success,
+      email: { success: emailSuccess, error: emailError },
+      n8n: { success: n8nResult.success, error: n8nResult.error },
     };
   }
 
