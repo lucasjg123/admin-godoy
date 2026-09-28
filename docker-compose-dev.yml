@@ -1,3 +1,4 @@
+name: admingodoy
 
 services:
   db:
@@ -23,6 +24,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      n8n:
+        condition: service_started
     ports:
       - "3000:3000"
     env_file:
@@ -44,5 +47,18 @@ services:
       - /app/node_modules
     command: npm run dev -- -H 0.0.0.0
 
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=America/Argentina/Buenos_Aires
+      - TZ=America/Argentina/Buenos_Aires
+    volumes:
+      - n8n_data:/home/node/.n8n
+
 volumes:
   mysql_data:
+  n8n_data:
