@@ -61,18 +61,18 @@ export class RecibosService {
     let emailError: string | null = null;
     
     try {
-      await this.mailService.sendMail({
-        to: titular?.email_tit ?? 'lucas9godoy@gmail.com',
-        subject: 'Recibo de pago expensas',
-        text: `${dto.mensaje}`,
-        attachments: [
-          {
-            filename: `recibo_de_pago.pdf`,
-            content: pdfBuffer,
-            contentType: 'application/pdf',
-          },
-        ],
-      });
+      // await this.mailService.sendMail({
+      //   to: titular?.email_tit ?? 'lucas9godoy@gmail.com',
+      //   subject: 'Recibo de pago expensas',
+      //   text: `${dto.mensaje}`,
+      //   attachments: [
+      //     {
+      //       filename: `recibo_de_pago.pdf`,
+      //       content: pdfBuffer,
+      //       contentType: 'application/pdf',
+      //     },
+      //   ],
+      // });
       emailSuccess = true;
     } catch (error) {
       emailError = error instanceof Error ? error.message : 'Error desconocido al enviar email';
