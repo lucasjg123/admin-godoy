@@ -35,6 +35,14 @@ const FormGastoComun = () => {
     return date ? date.toISOString().slice(0, 10) : undefined;
   }
 
+  // Se usa UTC porque las fechas se guardan como 'YYYY-MM-DD' (medianoche UTC)
+  const hoy = new Date();
+  const vto1 = gastoComun?.vto1_gc ? new Date(gastoComun.vto1_gc) : null;
+  const vto1EsMesActual =
+    !!vto1 &&
+    vto1.getUTCFullYear() === hoy.getFullYear() &&
+    vto1.getUTCMonth() === hoy.getMonth();
+
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -137,6 +145,10 @@ const FormGastoComun = () => {
               className='ms-2'
               onClick={(e) => {
                 e.preventDefault();
+                if (!vto1EsMesActual) {
+                  toast.error('Debe actualizar las expensas antes de enviar');
+                  return;
+                }
                 setOpenModal(true);
               }}
             >
