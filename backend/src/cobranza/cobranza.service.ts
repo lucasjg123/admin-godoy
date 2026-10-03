@@ -55,7 +55,8 @@ export class CobranzaService {
 
     const blocks = fullText
       // .split(/(?=CONSORCIO\s+EDIFICIO)/g)
-      .split(/(?=(?:CONSORCIO\s+)?EDIFICIO\s+\S)/g)
+      // corta antes de "CONSORCIO EDIFICIO" o de un "EDIFICIO" suelto, pero no entre ambas palabras
+      .split(/(?=CONSORCIO\s+EDIFICIO\s+\S|(?<!CONSORCIO\s+)EDIFICIO\s+\S)/g)
       .map((b) => b.trim())
       .filter(Boolean);
 
