@@ -1,10 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { CreateReciboDto } from './dto/create-recibo.dto';
 import { MailService } from 'src/mail/mail.service';
 import { PrinterService } from 'src/printer/printer.service';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { buildReciboTemplate } from './template/recibo.template';
 import { mapToReciboPdfData } from './helpers/map-recibo';
+
+type DeptoConEdificio = Prisma.departamentosGetPayload<{
+  include: { edificios: true };
+}>;
 
 @Injectable()
 export class RecibosService {
@@ -98,11 +103,20 @@ export class RecibosService {
 
   private async sendPaymentNotificationToN8n(
     dto: CreateReciboDto,
-    depto: any,
+    depto: DeptoConEdificio | null,
   ) {
+    // sin sheetId n8n no puede ubicar la planilla del edificio
+    const sheetId = depto?.edificios?.id_google_sheet;
+    if (!sheetId) {
+      return {
+        success: false,
+        error: 'El edificio no tiene configurado id_google_sheet',
+      };
+    }
+
     try {
       const payload = {
-        sheetId: depto?.edificios?.id_google_sheet,
+        sheetId,
         anio: dto.anio,
         depto: `${depto?.piso_depto} "${depto?.letra_depto}"`,
         mes: dto.meses[0],
