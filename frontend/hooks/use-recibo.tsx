@@ -35,16 +35,12 @@ export function useSendRecibo() {
 
       // Validar si la operación fue realmente exitosa
       if (!response.success) {
-        let errorMsg = 'Error al enviar el recibo';
-        if (!response.email.success && response.email.error) {
-          errorMsg += `Email: ${response.email.error}`;
+        // si falla el registro del pago (ej: mes ya pago) el mail no se envía
+        if (!response.n8n.success) {
+          setError(`Pago no registrado: ${response.n8n.error}`);
+        } else {
+          setError(`Pago registrado, pero falló el email: ${response.email.error}`);
         }
-        if (!response.n8n.success && response.n8n.error) {
-          errorMsg +=
-            (errorMsg.includes('Email') ? ' | ' : '') +
-            `Pago: ${response.n8n.error}`;
-        }
-        setError(errorMsg);
       }
       return response;
     } catch (err) {

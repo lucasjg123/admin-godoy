@@ -61,10 +61,20 @@ export class RecibosService {
       },
     });
 
+    // Primero registramos el pago en n8n: si algún mes ya estaba pago, no se envía el mail
+    const n8nResult = await this.sendPaymentNotificationToN8n(dto, depto);
+    if (!n8nResult.success) {
+      return {
+        success: false,
+        email: { success: false, error: null },
+        n8n: { success: false, error: n8nResult.error },
+      };
+    }
+
     // Enviar email con validación
     let emailSuccess = false;
     let emailError: string | null = null;
-    
+
     try {
       // await this.mailService.sendMail({
       //   to: titular?.email_tit ?? 'lucas9godoy@gmail.com',
@@ -82,22 +92,19 @@ export class RecibosService {
     } catch (error) {
       emailError = error instanceof Error ? error.message : 'Error desconocido al enviar email';
       console.error('Error al enviar email:', emailError);
-      // ABORTAR aquí si el email falla, no intentar notificar a n8n
+      // el pago ya quedó registrado en n8n, solo falló el mail
       return {
         success: false,
         email: { success: false, error: emailError },
-        n8n: { success: false, error: 'No se notificó a n8n porque el email falló' },
+        n8n: { success: true, error: null },
       };
     }
 
-    // Si el email se envió exitosamente, ENTONCES notificar a n8n
-    const n8nResult = await this.sendPaymentNotificationToN8n(dto, depto);
-
     // Retornar estructura ordenada
     return {
-      success: n8nResult.success,
+      success: true,
       email: { success: emailSuccess, error: emailError },
-      n8n: { success: n8nResult.success, error: n8nResult.error },
+      n8n: { success: true, error: null },
     };
   }
 
@@ -119,7 +126,7 @@ export class RecibosService {
         sheetId,
         anio: dto.anio,
         depto: `${depto?.piso_depto} "${depto?.letra_depto}"`,
-        mes: dto.meses[0],
+        meses: dto.meses,
         valorRegistro: 'PAGO',
       };
 
@@ -141,12 +148,17 @@ export class RecibosService {
       );
 
       if (!response.ok) {
+        // n8n responde { error: '...' } (ej: 409 si algún mes ya está pago)
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
         console.error(
           `Error enviando notificación a n8n: ${response.status} ${response.statusText}`,
+          body,
         );
         return {
           success: false,
-          error: `Error n8n: ${response.statusText}`,
+          error: body?.error ?? `Error n8n: ${response.statusText}`,
         };
       }
 
